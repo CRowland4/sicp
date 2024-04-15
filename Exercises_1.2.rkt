@@ -138,3 +138,37 @@
 ; Every increment of n by 1 produces another 2 in this compound exponent. So there will be n total exponents stacked on top of the two, which calls for
 ;    the mathematical double-arrow notation.
 ; So (h n) is the function 2 (double-up-arrow) n. Recursively, this would be defined as 2^h(n-1) (in mathematical notation, not LISP notation)
+
+
+
+; 1.11
+; Recursive
+(define (recursive-func n)
+  (if (< n 3)
+      n
+      (+ (recursive-func (- n 1)) (* 2 (recursive-func (- n 2))) (* 3 (recursive-func (- n 3))))))
+(recursive-func 10)
+
+; Iterative
+(define (iterative-func n)
+  (if (< n 3)
+      n
+      (iter-func 2 1 0 n 3)))
+(define (iter-func minus-1 minus-2 minus-3 end current)
+  (if (= end current)
+      (+ minus-1 (* 2 minus-2) (* 3 minus-3))
+      (iter-func (+ minus-1 (* 2 minus-2) (* 3 minus-3)) minus-1 minus-2 end (+ current 1))))
+(iterative-func 10)
+
+
+
+; Exercise 1.12
+(define (recursive-pascal layer digit)
+  (if (or (= digit 1) (= digit layer))
+      1
+      (+ (recursive-pascal (- layer 1) (- digit 1))
+         (recursive-pascal (- layer 1) digit))))
+(recursive-pascal 152 3)
+
+      
+      
