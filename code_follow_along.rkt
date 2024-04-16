@@ -92,4 +92,32 @@
         ((= kinds-of-coins 3) 10)
         ((= kinds-of-coins 4) 25)
         ((= kinds-of-coins 5) 50)))
+
+
+
+; Recursive exponentiation procedure
+(define (recursive-expt b n)
+  (if (= n 0)
+      1
+      (* b (recursive-expt b (- n 1)))))
+
+; Iterative exponentiaion procedure
+(define (iterative-expt b n)
+  (expt-iter b n 1))
+(define (expt-iter b counter product)
+  (if (= counter 0)
+      product
+      (expt-iter b
+                 (- counter 1)
+                 (* b product))))
+
+; Faster iterative exponentiation procedure
+(define (expt b n)
+  (fast-expt-iter b n 1))
+(define (fast-expt-iter b counter product)
+  (if (= counter 0)
+      product
+      (fast-expt-iter b
+                 (- counter 1)
+                 (* b product))))
   

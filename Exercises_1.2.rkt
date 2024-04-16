@@ -168,7 +168,42 @@
       1
       (+ (recursive-pascal (- layer 1) (- digit 1))
          (recursive-pascal (- layer 1) digit))))
-(recursive-pascal 152 3)
+
+
+
+; Exercise 1.13 - Math proof, done in Liquid Text
+
+
+
+; Exercise 1.14 - Hand-draw a tree for a recursive process, done in Liquid Text
+
+
+
+; Exercise 1.15
+(define (cube x) (* x x x))
+(define (p x) (- (* 3 x) (* 4 (cube x))))
+(define (sine angle)
+  (if (not (> (abs angle) 0.1))
+      angle
+      (p (sine (/ angle 3.0)))))
+(sin 12.15)
+
+; a) (sin 12.5) -> (sin 4.17) -> (sin 1.38) -> (sin 0.64) -> (sin 0.15) -> (sin 0.05) ----- 6 steps
+; b) Since each angle is divided by three until a threshold, the space and time complexities are both O(log(a))
+
+
+
+; Exercise 1.16
+(define (iterative-fast-exponentiation b n)
+  (iter-exp 1 b (- n 1)))
+(define (iter-exp a b n)
+  (cond ((= n 0) a)
+        ((even? n) (iter-exp (* a b b) b (/ n 2)))
+        (else (iter-exp (* a b) b (- n 1)))))
+(define (even? n)
+  (= (remainder n 2) 0))
+(iterative-fast-exponentiation 3 3)
+                
 
       
       
