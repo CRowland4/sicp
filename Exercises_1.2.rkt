@@ -147,7 +147,6 @@
   (if (< n 3)
       n
       (+ (recursive-func (- n 1)) (* 2 (recursive-func (- n 2))) (* 3 (recursive-func (- n 3))))))
-(recursive-func 10)
 
 ; Iterative
 (define (iterative-func n)
@@ -158,7 +157,6 @@
   (if (= end current)
       (+ minus-1 (* 2 minus-2) (* 3 minus-3))
       (iter-func (+ minus-1 (* 2 minus-2) (* 3 minus-3)) minus-1 minus-2 end (+ current 1))))
-(iterative-func 10)
 
 
 
@@ -186,7 +184,6 @@
   (if (not (> (abs angle) 0.1))
       angle
       (p (sine (/ angle 3.0)))))
-(sin 12.15)
 
 ; a) (sin 12.5) -> (sin 4.17) -> (sin 1.38) -> (sin 0.64) -> (sin 0.15) -> (sin 0.05) ----- 6 steps
 ; b) Since each angle is divided by three until a threshold, the space and time complexities are both O(log(a))
@@ -202,8 +199,18 @@
         (else (iter-exp (* a b) b (- n 1)))))
 (define (even? n)
   (= (remainder n 2) 0))
-(iterative-fast-exponentiation 3 3)
-                
 
-      
-      
+
+
+; Exercise 1.17
+(define (double x)
+  (+ x x))
+(define (halve x)
+  (/ x 2))
+(define (iterative-fast-multiplication a b)
+  (iter-fast-mult a b 0))
+(define (iter-fast-mult a b leftover)
+  (cond ((= b 0) 0)
+        ((= b 1) (+ a leftover))
+        ((even? b) (iter-fast-mult (double a) (halve b) leftover))
+        (else (iter-fast-mult a (- b 1) (+ leftover a)))))
