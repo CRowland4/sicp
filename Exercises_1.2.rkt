@@ -207,6 +207,15 @@
   (+ x x))
 (define (halve x)
   (/ x 2))
+(define (recursive-fast-multiplication a b)
+  (cond ((= b 0) 0)
+        ((= b 1) a)
+        ((even? b) (recursive-fast-multiplication (double a) (halve b)))
+        (else (+ a (recursive-fast-multiplication a (- b 1))))))
+
+
+
+; Exercise 1.18
 (define (iterative-fast-multiplication a b)
   (iter-fast-mult a b 0))
 (define (iter-fast-mult a b leftover)
@@ -214,3 +223,85 @@
         ((= b 1) (+ a leftover))
         ((even? b) (iter-fast-mult (double a) (halve b) leftover))
         (else (iter-fast-mult a (- b 1) (+ leftover a)))))
+
+
+
+; Exercise 1.19
+(define (fib n)
+  (fib-iter 1 0 0 1 n))
+(define (fib-iter a b p q count)
+  (cond ((= count 0) b)
+        ((even? count)
+         (fib-iter a
+                   b
+                   (+ (* p p) (* q q))  ; This is p'
+                   (+ (* 2 p q) (* q q))  ; This is q'
+                   (/ count 2)))
+        (else (fib-iter (+ (* b) (* a q) (* a p))
+                        (+ (* b p) (* a q))
+                        p
+                        q
+                        (- count 1)))))
+
+
+
+; Exercise 1.20
+; Normal Order done in Liquid Text, took 4 remainder calculations
+; Applicative Order (long, didn't want to write out in Liquid Text:
+
+
+(gcd 206 40)
+
+(if (= 40 0)
+    206
+    (gcd (40 (remainder 206 40))))
+
+(gcd (40 (remainder 206 40)))
+
+(if (= (remainder 206 40) 0)
+    40
+    (gcd (remainder 206 40) (remainder (40 (remainder 206 40)))))
+
+(if (= 6 0)  ; 1 remainder
+    40
+    (gcd (remainder 206 40) (remainder (40 (remainder 206 40)))))
+
+(gcd (remainder 206 40) (remainder (40 (remainder 206 40))))
+
+(if (= (remainder 40 (remainder 206 40)) 0)
+    (remainder 206 40)
+    (gcd (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+
+(if (= (remainder 40 6) 0)  ; 1 remainder
+    (remainder 206 40)
+    (gcd (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+
+(if (= 4 0)  ; 1 remainder
+    (remainder 206 40)
+    (gcd (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+
+(gcd (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))
+
+(if (= (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) 0)
+    (remainder (40 (remainder 206 40)))
+    (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))))
+
+(if (= (remainder (remainder 206 40) (remainder 40 6)) 0)  ; 1 remainder
+    (remainder (40 (remainder 206 40)))
+    (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))))
+
+(if (= (remainder (remainder 206 40) 4) 0)  ; 1 remainder
+    (remainder (40 (remainder 206 40)))
+    (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))))
+
+(if (= (remainder 6 4) 0)  ; 1 remainder
+    (remainder (40 (remainder 206 40)))
+    (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))))
+
+(if (= 2 0)  ; 1 remainder
+    (remainder (40 (remainder 206 40)))
+    (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))))
+
+(gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+
+(gcd (remainder 6 (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))  ; 1 remainder

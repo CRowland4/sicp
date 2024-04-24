@@ -120,4 +120,12 @@
       (fast-expt-iter b
                  (- counter 1)
                  (* b product))))
+
+
+
+; Euclid's algorithm
+(define (gcd a b)
+  (if (= b -)
+      a
+      (gcd b (remainder a b))))
   
