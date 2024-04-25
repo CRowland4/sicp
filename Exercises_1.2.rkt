@@ -376,7 +376,6 @@ Applicative Order took 18 remainder calculations
       (display " *** ")
   (display " NOT PRIME ")))
 (define (report-prime elapsed-time)
-  
   (display elapsed-time))
 (define (prime? n)
   (= n (smallest-divisor n)))
@@ -401,3 +400,64 @@ Applicative Order took 18 remainder calculations
 
 
 
+; Exercise 1.23
+(define (faster-timed-prime-test n)
+  (newline)
+  (display n)
+  (faster-start-prime-test n))
+(define (faster-start-prime-test n)
+  (if (faster-prime? n)
+      (display " *** ")
+  (display " NOT PRIME ")))
+(define (faster-prime? n)
+  (= n (faster-smallest-divisor n)))
+(define (faster-solution-procedure n end)
+  (define n-in-range (< (- n 1) end))
+  (define n-odd (= (remainder n 2) 1))
+  (define n-even (= (remainder n 2) 0))
+  (cond ((and n-in-range n-even) (faster-solution-procedure (+ n 1) end))
+        ((and n-in-range n-odd)
+         (faster-timed-prime-test n)
+         (faster-solution-procedure (+ n 1) end))
+        ((not n-in-range) (display " END "))))
+(define (faster-smallest-divisor n)
+  (faster-find-divisor n 2))
+(define (faster-find-divisor n test-divisor)
+  (cond ((> (* test-divisor test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (faster-find-divisor n (next test-divisor)))))
+(define (next n)
+  (if (= 2 n) 3
+      (+ n 2)))
+
+
+;(time (faster-solution-procedure 10000 20000))  ; Real time 305. 
+;(time (faster-solution-procedure 100000 200000))  ; Real time 3516.
+; It's faster, but not by half. This is most likely due to the fact that I can't use the exact functionality described in the exercises, because this Scheme implementation
+;    doesn't have the same primitive procedure (runtime) that the book talks about. Printing to the screen in an IDE can also come with a lot of overhead, which may also be
+;    causing a significant slowdown in large-quantity processes that would otherwise be very fast.
+
+
+
+; Exercise 1.24
+(define (fermat-timed-prime-test n)
+  (newline)
+  (display n)
+  (fermat-start-prime-test n))
+(define (fermat-start-prime-test n)
+  (if (prime? n)
+      (display " *** ")
+  (display " NOT PRIME ")))
+(define (fermat-report-prime elapsed-time)
+  (display elapsed-time))
+(define (fermat-prime? n)
+  (= n (smallest-divisor n)))
+(define (solution-procedure n end)
+  (define n-in-range (< (- n 1) end))
+  (define n-odd (= (remainder n 2) 1))
+  (define n-even (= (remainder n 2) 0))
+  (cond ((and n-in-range n-even) (solution-procedure (+ n 1) end))
+        ((and n-in-range n-odd)
+         (timed-prime-test n)
+         (solution-procedure (+ n 1) end))
+        ((not n-in-range) (display " END "))))
