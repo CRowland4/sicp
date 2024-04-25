@@ -59,7 +59,7 @@
         ((= y 1) 2)
         (else (A (- x 1) (A x (- y 1))))))
 
-(A 1 10)
+; (A 1 10)
 ; (A 0 (A 1 9))
 ; (A 0 (A 0 (A 1 8)))
 ; (A 0 (A 0 (A 0 (A 1 7))))
@@ -80,7 +80,7 @@
 ; (A 0 512)
 ; 1024
 
-(A 2 4)
+; (A 2 4)
 ; (A 1 (A 2 3))
 ; (A 1 (A 1 (A 2 2)))
 ; (A 1 (A 1 (A 1 (A 2 1))))
@@ -104,7 +104,7 @@
 
 ; I was wrong, so I I'm gonna do this one manually as well to get a feel for why I was wrong
 
-(A 3 3)
+; (A 3 3)
 ; (A 2 (A 3 2))
 ; (A 2 (A 2 (A 3 1)))
 ; (A 2 (A 2 2))
@@ -247,9 +247,10 @@
 
 ; Exercise 1.20
 ; Normal Order done in Liquid Text, took 4 remainder calculations
-; Applicative Order (long, didn't want to write out in Liquid Text:
+; Applicative Order (long, didn't want to write out in Liquid Text):
 
 
+#|
 (gcd 206 40)
 
 (if (= 40 0)
@@ -304,4 +305,99 @@
 
 (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
 
-(gcd (remainder 6 (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))  ; 1 remainder
+(if (= (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) 0)
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder (remainder 40 6) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder 4 (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder 4 (remainder 6 (remainder 40 (remainder 206 40)))) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder 4 (remainder 6 (remainder 40 6))) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder 4 (remainder 6 4)) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= (remainder 4 2) 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(if (= 0 0)  ; 1 remainder
+    (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))
+    (gcd (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))) (remainder (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder (40 (remainder 206 40))) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))))
+
+(remainder (remainder 206 40) (remainder 40 6))  ; 1 remainder
+
+(remainder (remainder 206 40) 4)  ; 1 remainder
+
+(remainder 6 4)  ; 1 remainder
+
+2  ; 1 remainder
+
+Applicative Order took 18 remainder calculations
+|#
+
+
+
+; Exercise 1.21
+(define (smallest-divisor n)
+  (find-divisor n 2))
+(define (find-divisor n test-divisor)
+  (cond ((> (* test-divisor test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+(define (divides? a b) (= (remainder b a) 0))
+
+(find-divisor 199 2)
+(find-divisor 1999 2)
+(find-divisor 19999 2)
+
+
+
+; Exercise 1.22
+; Use the below procedure to define a procedure that checks the primality of consecutive odd integers in a specified range.
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n))
+(define (start-prime-test n)
+  (if (prime? n)
+      (display " *** ")
+  (display " NOT PRIME ")))
+(define (report-prime elapsed-time)
+  
+  (display elapsed-time))
+(define (prime? n)
+  (= n (smallest-divisor n)))
+(define (solution-procedure n end)
+  (define n-in-range (< (- n 1) end))
+  (define n-odd (= (remainder n 2) 1))
+  (define n-even (= (remainder n 2) 0))
+  (cond ((and n-in-range n-even) (solution-procedure (+ n 1) end))
+        ((and n-in-range n-odd)
+         (timed-prime-test n)
+         (solution-procedure (+ n 1) end))
+        ((not n-in-range) (display " END "))))
+
+;(time (solution-procedure 1000 1020))  ; First three primes - 1009, 1013, 1019. Real Time taken reads as 0
+;(time (solution-procedure 10000 10038))  ; First three primes - 10007, 10009, 100037. Real Time taken reads as 0
+;(time (solution-procedure 100000 100045))  ; First three primes - 100003, 100019, 100043. Real Time taken still reads as 0
+;(time (solution-procedure 1000000 1000038))  ; First three primes - 1000003, 1000033, 1000037. Real Time taken still reads as 0
+
+;(time (solution-procedure 10000 20000))  ; Real time 327
+;(time (solution-procedure 100000 200000))  ; Real time 3716
+;(time (solution-procedure 1000000 2000000))  ; Real time 45439
+
+
+
