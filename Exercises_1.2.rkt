@@ -539,23 +539,36 @@ Applicative Order took 18 remainder calculations
         (else false)))
 (define (miller-rabin-fermat-test n)
   (define (try-it a)
-    (= (miller-rabin-expmod a n n) a))
+    (= (miller-rabin-expmod a (- n 1) n) 1))
   (try-it (+ 1 (random (- n 1)))))
 (define (miller-rabin-expmod base exp m)
   (cond ((= exp 0) 1)       
         ((even? exp)
-         (define this-mod-squared (square (miller-rabin-expmod base (/ exp 2) m)))
-         (if (= (remainder this-mod-squared m) 1)
+         (define this-mod (miller-rabin-expmod base (/ exp 2) m))
+         (if (and
+              (not (= this-mod 1))
+              (not (= this-mod (- m 1)))
+              (= (remainder (square this-mod) m) 1))
              0
-             (remainder this-mod-squared m)))
+             (remainder (square this-mod) m)))
         (else
          (remainder
           (* base (miller-rabin-expmod base (- exp 1) m))
           m))))
 
-(miller-rabin-fast-prime? 561 10)
-(miller-rabin-fast-prime? 1105 10)
-(miller-rabin-fast-prime? 1729 10)
-(miller-rabin-fast-prime? 2465 10)
-(miller-rabin-fast-prime? 2821 10)
-(miller-rabin-fast-prime? 6601 10)
+(miller-rabin-fast-prime? 561 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 1105 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 1729 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 2465 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 2821 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 6601 10)  ; Correctly returns false
+(miller-rabin-fast-prime? 10007 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 1009 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 1013 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 1019 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 100003 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 100043 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 100019 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 7 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 1000037 10)  ; Correctly returns true
+(miller-rabin-fast-prime? 1000033 10)  ; Correctly returns true

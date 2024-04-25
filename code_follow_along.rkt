@@ -170,3 +170,58 @@
   (cond ((= times 0) true)
         ((fermat-test n) (fast-prime? n (- times 1)))
         (else false)))
+
+
+
+; Procedure for cubing
+(define (cube x)
+  (* x x x))
+
+
+
+; Procedure for sum of integers from a to b
+(define (sum-integers a b)
+  (if (> a b)
+      0
+      (+ a (sum-integers (+ a 1) b))))
+
+; Procedure for sum of cubes of integers from a to b
+(define (sum-cubes a b)
+  (if (> a b)
+      0
+      (+ (cube a)
+         (sum-cubes (+ a 1) b))))
+
+; Procedure for sum of terms in series (1/(1*3)), (1/(5*7)), (1/(9*11)),..., which coverges to pi/8
+(define (pi-sum a b)
+  (if (> a b)
+      0
+      (+ (/ 1.0 (* a (+ a 2)))
+         (pi-sum (+ a 4) b))))
+
+; Templated abstraction of the above three procedures - essentially, a sigma-summation template
+(define (sum term a next b) ; This is basically (define (sum <how to get the current term from a> <how to get the next term from a> <b>))
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
+
+; Example usage for cube summation with a helper procedure that increments an argument by 1
+(define (inc n)
+  (+ n 1))
+(define (template-sum-cubes a b)
+  (sum cube a inc b))
+
+; Example usage for integer summation with a helper procedure that is the identity function
+(define (identity x)
+  x)
+(define (template-sum-integers a b)
+  (sum identity a inc b))
+
+; Example usage for pi-sum with a helper
+(define (template-pi-sum a b)
+  (define (pi-term x)
+    (/ 1.0 (* x (+ x 2))))
+  (define (pi-next x)
+    (+ x 4))
+  (sum pi-term a pi-next b))
