@@ -512,3 +512,50 @@ Applicative Order took 18 remainder calculations
 ; Without going into the specific mathematics, this creates a binary tree-like structure, where the nodes is exponential in the number of steps. And since
 ;    exponents and logs are the inverse of each other, and the previous number of steps was about log(n), we're left with n now. So the process is an O(n) process.
 
+
+
+; Exercise 1.27
+(define (carmichael-test current n)
+  (cond ((= current n) (display " END - Fermat test passed for all a < ")
+                     (display n)
+                     (newline))
+        ((= (expmod current n n) (remainder current n)) (carmichael-test (+ current 1) n))
+        (else (display "Fermat test failed for ")
+              (display current))))
+
+(carmichael-test 1 561)
+(carmichael-test 1 1105)
+(carmichael-test 1 1729)
+(carmichael-test 1 2465)
+(carmichael-test 1 2821)
+(carmichael-test 1 6601)
+
+
+
+; Exercise 1.28
+(define (miller-rabin-fast-prime? n times)
+  (cond ((= times 0) true)
+        ((miller-rabin-fermat-test n) (miller-rabin-fast-prime? n (- times 1)))
+        (else false)))
+(define (miller-rabin-fermat-test n)
+  (define (try-it a)
+    (= (miller-rabin-expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+(define (miller-rabin-expmod base exp m)
+  (cond ((= exp 0) 1)       
+        ((even? exp)
+         (define this-mod-squared (square (miller-rabin-expmod base (/ exp 2) m)))
+         (if (= (remainder this-mod-squared m) 1)
+             0
+             (remainder this-mod-squared m)))
+        (else
+         (remainder
+          (* base (miller-rabin-expmod base (- exp 1) m))
+          m))))
+
+(miller-rabin-fast-prime? 561 10)
+(miller-rabin-fast-prime? 1105 10)
+(miller-rabin-fast-prime? 1729 10)
+(miller-rabin-fast-prime? 2465 10)
+(miller-rabin-fast-prime? 2821 10)
+(miller-rabin-fast-prime? 6601 10)
