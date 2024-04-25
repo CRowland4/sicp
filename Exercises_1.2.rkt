@@ -488,4 +488,27 @@ Applicative Order took 18 remainder calculations
 
 
 ; Exercise 1.25
+#|
+(define (expmod base exp m)
+ (remainder (fast-expt base exp) m))
+|#
+; No, this would not serve us well for the prime test. The intermediate results are huge, and would consume far too much memory for checking sufficiently large primes.
+; The current version of expmod uses mathematical identities to avoid actually having to deal with the value of base^exp.
+
+
+
+; Exercise 1.26
+(define (slow-expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (* (expmod base (/ exp 2) m)
+                       (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base
+                       (expmod base (- exp 1) m))
+                    m))))
+; This procedure runs much slower because the expression <(expmod base (/ exp 2) m)> is being calculated twice for every one time it's needed.
+; Without going into the specific mathematics, this creates a binary tree-like structure, where the nodes is exponential in the number of steps. And since
+;    exponents and logs are the inverse of each other, and the previous number of steps was about log(n), we're left with n now. So the process is an O(n) process.
 
