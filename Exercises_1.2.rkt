@@ -440,24 +440,52 @@ Applicative Order took 18 remainder calculations
 
 
 ; Exercise 1.24
+(define (fermat-solution-procedure n end)
+  (define n-in-range (< (- n 1) end))
+  (define n-odd (= (remainder n 2) 1))
+  (define n-even (= (remainder n 2) 0))
+  (cond ((and n-in-range n-even) (fermat-solution-procedure (+ n 1) end))
+        ((and n-in-range n-odd)
+         (fermat-timed-prime-test n)
+         (fermat-solution-procedure (+ n 1) end))
+        ((not n-in-range) (display " END "))))
+(define (square n)
+  (* n n))
 (define (fermat-timed-prime-test n)
   (newline)
   (display n)
   (fermat-start-prime-test n))
 (define (fermat-start-prime-test n)
-  (if (prime? n)
+  (if (fermat-prime? n 10)
       (display " *** ")
   (display " NOT PRIME ")))
 (define (fermat-report-prime elapsed-time)
   (display elapsed-time))
-(define (fermat-prime? n)
-  (= n (smallest-divisor n)))
-(define (solution-procedure n end)
-  (define n-in-range (< (- n 1) end))
-  (define n-odd (= (remainder n 2) 1))
-  (define n-even (= (remainder n 2) 0))
-  (cond ((and n-in-range n-even) (solution-procedure (+ n 1) end))
-        ((and n-in-range n-odd)
-         (timed-prime-test n)
-         (solution-procedure (+ n 1) end))
-        ((not n-in-range) (display " END "))))
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+(define (fermat-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test n) (fermat-prime? n (- times 1)))
+        (else false)))
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder
+          (square (expmod base (/ exp 2) m))
+          m))
+        (else
+         (remainder
+          (* base (expmod base (- exp 1) m))
+          m))))
+
+;(time (fermat-solution-procedure 10000 20000))  ; Real time 240. 
+;(time (faster-solution-procedure 100000 200000))  ; Real time 2573.
+;(time (solution-procedure 1000000 2000000))  ; Real time 33508
+; These are all much faster times. The Fermat test significantly speeds things up, though it still seems like there's overhead somewhere, again I think it's due to the printing
+
+
+
+; Exercise 1.25
+
