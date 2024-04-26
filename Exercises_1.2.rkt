@@ -613,3 +613,31 @@ Applicative Order took 18 remainder calculations
 
 
 ; Exercise 1.31
+; Product procedure
+(define (product f a b)
+  (if (> a b)
+      1
+      (* (f a) (product f (+ a 1) b))))
+(define (identity x)
+  x)
+
+; Factorial procedure
+(define (factorial x) ; Assumes x is a non-negative integer
+  (if (< x 1)
+      1
+      (product identity 1 x)))
+
+; Product procedure for estimating pi
+(define (pi-estimate-term i)
+  (cond ((= 1 i) (/ 2.0 3.0))
+        ((= (remainder i 2) 1)
+         (/ (+ i 1) (+ i 2)))
+        (else (/ (+ i 2) (+ i 1)))))
+(product pi-estimate-term 1 10000)
+
+; Iterative product process
+(define (iter-product f n result)
+  (if (= 0 n)
+      result
+      (iter-product f (- n 1) (* result (f n)))))
+
