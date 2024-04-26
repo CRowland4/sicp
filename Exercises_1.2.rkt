@@ -572,3 +572,44 @@ Applicative Order took 18 remainder calculations
 (miller-rabin-fast-prime? 7 10)  ; Correctly returns true
 (miller-rabin-fast-prime? 1000037 10)  ; Correctly returns true
 (miller-rabin-fast-prime? 1000033 10)  ; Correctly returns true
+
+
+
+; Exercise 1.29
+(define (simpsons-rule f a b n)
+  (define h (/ (- b a) (* n 1.0)))
+  (define (simpson-term k)
+    (define arg (+ a (* k h)))
+    (cond ((or (= 0 k) (= n k)) (f arg))
+          ((= (remainder k 2) 1) (* 4 (f arg)))
+          (else (* 2 (f arg)))))
+  (* (/ h 3)
+     (sum simpson-term 0 inc n)))
+(define (sum term a next b)
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
+(define (inc n)
+  (+ n 1))
+
+(simpsons-rule cube 0 1 100)
+(simpsons-rule cube 0 1 1000)
+; These results are much more accurate than the normal integration function used in the code follow along.
+; Note - Given that Dr. Racket's precision seems to truncate at 15 decimal places, it sometimes looks like larger values of n give
+;    less accurate results. This isn't the case mathematically, and is just an illusion of the the way computers handle floats.
+;    After a certain point, the extra precision gained by more iterations is too small to be displayed.
+
+
+
+; Exercise 1.30
+(define (iter-sum term a next b)
+  (define (iter a result)
+    (if (> (a b))
+        result
+        (iter (next a) (+ result (term a)))))
+  (iter a 0))
+
+
+
+; Exercise 1.31
