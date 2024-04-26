@@ -641,3 +641,28 @@ Applicative Order took 18 remainder calculations
       result
       (iter-product f (- n 1) (* result (f n)))))
 
+
+
+; Exercise 1.32
+; General accumulation procedure (recursive)
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (combiner (term a)
+                (accumulate combiner null-value term (next a) next b))))
+
+; Creation of sum procedure using accumulation
+(define (accum-sum term a next b)
+  (accumulate + 0 term a next b))
+
+; Creation of product procedure using accumulation
+(define (accum-product term a next b)
+  (accumulate * 1 term a next b))
+
+; General accumulation procedure (iterative)
+(define (accumulate-iter combiner term a b result) ; Result acts as the null-value here
+  (if (> a b)
+      result
+      (accumulate-iter combiner (+ a 1) b (combiner result (term a)))))
+
+
