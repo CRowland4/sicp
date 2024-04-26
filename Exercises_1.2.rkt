@@ -374,7 +374,7 @@ Applicative Order took 18 remainder calculations
 (define (start-prime-test n)
   (if (prime? n)
       (display " *** ")
-  (display " NOT PRIME ")))
+      (display " NOT PRIME ")))
 (define (report-prime elapsed-time)
   (display elapsed-time))
 (define (prime? n)
@@ -408,7 +408,7 @@ Applicative Order took 18 remainder calculations
 (define (faster-start-prime-test n)
   (if (faster-prime? n)
       (display " *** ")
-  (display " NOT PRIME ")))
+      (display " NOT PRIME ")))
 (define (faster-prime? n)
   (= n (faster-smallest-divisor n)))
 (define (faster-solution-procedure n end)
@@ -458,7 +458,7 @@ Applicative Order took 18 remainder calculations
 (define (fermat-start-prime-test n)
   (if (fermat-prime? n 10)
       (display " *** ")
-  (display " NOT PRIME ")))
+      (display " NOT PRIME ")))
 (define (fermat-report-prime elapsed-time)
   (display elapsed-time))
 (define (fermat-test n)
@@ -517,8 +517,8 @@ Applicative Order took 18 remainder calculations
 ; Exercise 1.27
 (define (carmichael-test current n)
   (cond ((= current n) (display " END - Fermat test passed for all a < ")
-                     (display n)
-                     (newline))
+                       (display n)
+                       (newline))
         ((= (expmod current n n) (remainder current n)) (carmichael-test (+ current 1) n))
         (else (display "Fermat test failed for ")
               (display current))))
@@ -660,9 +660,40 @@ Applicative Order took 18 remainder calculations
   (accumulate * 1 term a next b))
 
 ; General accumulation procedure (iterative)
-(define (accumulate-iter combiner term a b result) ; Result acts as the null-value here
+(define (accumulate-iter combiner f a b result) ; Result acts as the null-value here
   (if (> a b)
       result
-      (accumulate-iter combiner (+ a 1) b (combiner result (term a)))))
+      (accumulate-iter combiner (+ a 1) b (combiner result (f a)))))
 
+
+
+; Exercise 1.33
+; Filtered accumulate procedure
+(define (filtered-accumulate combiner f a b result filter)
+  (cond ((> a b) result)
+        ((filter a)
+         (filtered-accumulate combiner f (+ a 1) b (combiner result (f a)) filter))
+        (else (filtered-accumulate combiner f (+ a 1) b result filter))))
+
+; Sum of squares of prime numbers in interval a to b.
+(filtered-accumulate + square 1 10 0 prime?)
+
+; Product of all positive integers less than n that are relatively prime to n
+; Create the gcd filter
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+(define (gcd-filter a b)
+  (if (= (gcd a b) 1)
+      true
+      false))
+; Since the filter for this function has to do with the current value in the range's *relation to n*, we need a new accumulation function whose filter takes two arguments
+(define (filtered-accumulate-two combiner f a b result filter)
+  (cond ((> a b) result)
+        ((filter a b)
+         (filtered-accumulate-two combiner f (+ a 1) b (combiner result (f a)) filter))
+        (else (filtered-accumulate-two combiner f (+ a 1) b result filter))))
+; Solution
+(filtered-accumulate-two * identity 1 10 1 gcd-filter)
 
