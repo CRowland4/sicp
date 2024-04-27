@@ -697,3 +697,87 @@ Applicative Order took 18 remainder calculations
 ; Solution
 (filtered-accumulate-two * identity 1 10 1 gcd-filter)
 
+
+
+; Exercise 1.34
+#|
+(define (f g) (g 2))
+(f square)
+(f (lambda (z) (* z (+ z 1))))
+|#
+; (f f)
+; -> (f 2)
+; -> (2 2)
+; This will throw an error, because the second f's argument will be an integer (2) instead of a procedure
+
+
+
+; Exercise 1.35 - Showing that the golden ratio is a fixed point of the given function is in Liquid Text
+(define tolerance 0.00001)
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2))
+       tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+(fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0)
+
+
+
+; Exercise 1.36
+(define (displayed-fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2))
+       tolerance))
+  (define (try guess)
+    (display guess) (newline)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+
+; Fixed point of f(x) = log(1000)/log(x)
+(define (y-func x)
+  (/ (log 1000) (log x)))
+
+; Without damping, 34 steps
+(displayed-fixed-point y-func 2.0)
+
+; WIth damping, 9 steps
+(displayed-fixed-point (lambda (x) (/ (+ (y-func x) x) 2)) 2.0)
+
+
+
+; Exercise 1.37
+; Recursive cont-frac
+(define (cont-frac n d k)
+  (if (= 0 k)
+      (/ (n k) (d k))
+      (/ (n k) (+ (d k) (cont-frac n d (- k 1))))))
+(define (four-decimal-estimate start)
+  (if (< (abs (- (cont-frac (lambda (i) 1.0)
+                            (lambda (i) 1.0)
+                            start)
+                 0.6180339888))
+         0.00001)
+      start
+      (four-decimal-estimate (+ start 1))))
+(four-decimal-estimate 1) ; Takes 11 iterations
+
+; Iterative cont-frac
+(define (cont-frac-iter n d k result) ; Starting result here should be (d k)
+  (if (= 1 k)
+      (/ (n k) result)
+      (cont-frac-iter n
+                      d
+                      (- k 1)
+                      (+ (d (- k 1)) (/ (n k) result)))))
+(cont-frac-iter (lambda (i) 1.0)
+                (lambda (i) 1.0)
+                11
+                1.0)

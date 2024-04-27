@@ -4,10 +4,8 @@
 (define (square x)
   (* x x))
 
-
 (define (sum-of-squares x y)
   (+ (square x) (square y)))
-
 
 (define (f a)
   (sum-of-squares (+ a 1) (* a 2)))
@@ -234,3 +232,104 @@
      dx))
 (integral cube 0 1 0.01)
 (integral cube 0 1 0.001)
+
+
+
+; Examples of lambda functions
+(lambda (x) (+ x 4))
+(lambda (x) (/ 1.0 (* x (+ x 2))))
+
+; Procedure for pi-sum using a lambda
+(define (lambda-pi-sum a b)
+  (sum (lambda (x) (/ 1.0 (* x (+ x 2))))
+       a
+       (lambda (x) (+ x 4))
+       b))
+
+; Procedure for integral using a lambda
+(define (lambda-integral f a b dx)
+  (* (sum f
+          (+ a (/ dx 2.0))
+          (lambda (x) (+ x dx))
+          b)
+     dx))
+
+
+
+; Example of using let to declare local variables
+; The let special form is just syntactic sugar for using lambda inside of a procedure to artificially (or authentically?) create local variables
+(define (f-let x y)
+  (let ((a (+ 1 (* x y)))
+        (b (- 1 y)))
+    (+ (* x (square a))
+       (* y b)
+       (* a b))))
+
+; Example of using define for local variables, instead of let. This is not preferred/conventional
+(define (f-defines x y)
+  (define a (+ 1(* x y)))
+  (define b (-1 y))
+  (+ (* x (square a))
+     (* y b)
+     (* a b)))
+
+
+
+; Half-interval method of finding roots of an equation
+(define (search f neg-point pos-point)
+  (let ((midpoint (average neg-point pos-point)))
+    (if (close-enough? neg-point pos-point)
+        midpoint
+        (let ((test-value (f midpoint)))
+          (cond ((positive? test-value)
+                 (search f neg-point midpoint))
+                ((negative? test-value)
+                 (search f midpoint pos-point))
+                (else midpoint))))))
+(define (close-enough? x y) (< (abs (- x y)) 0.001))
+
+; Wrapper that calls search with the appropriate positive and negative points in the right place
+(define (half-interval-method f a b)
+  (let ((a-value (f a))
+        (b-value (f b)))
+        (cond ((and (negative? a-value) (positive? b-value))
+              (search f a b))
+             ((and (negative? b-value) (positive? a-value))
+              (search f b a))
+             (else
+              (error "Values are not of opposite sign" a b)))))
+
+; Estimating root of sin between 2 and 4, which is pi
+(half-interval-method sin 2.0 4.0)
+
+; Estimating the root of a polynomial function
+(half-interval-method (lambda (x) (- (* x x x) (* 2 x) 3))
+                      1.0
+                      2.0)
+
+
+
+; Estimating fixed points of a function
+(define tolerance 0.00001)
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2))
+       tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+
+; Approximate the fixed point of the cosine function starting with an initial guess of 1
+(fixed-point cos 1.0)
+
+; Using fixed point to find a solution to the equation y = sin(y) + cos(y)
+(fixed-point (lambda (y) (+ (sin y) (cos y)))
+             1.0)
+
+; Using fixed point procedure to approximate square roots
+(define (fixed-pt-sqrt x)
+  (fixed-point (lambda (y) (average y (/ x y)))
+               1.0))
