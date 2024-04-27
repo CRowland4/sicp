@@ -756,18 +756,16 @@ Applicative Order took 18 remainder calculations
 ; Exercise 1.37
 ; Recursive cont-frac
 (define (cont-frac n d k)
-  (if (= 0 k)
-      (/ (n k) (d k))
-      (/ (n k) (+ (d k) (cont-frac n d (- k 1))))))
-(define (four-decimal-estimate start)
-  (if (< (abs (- (cont-frac (lambda (i) 1.0)
-                            (lambda (i) 1.0)
-                            start)
-                 0.6180339888))
-         0.00001)
-      start
-      (four-decimal-estimate (+ start 1))))
-(four-decimal-estimate 1) ; Takes 11 iterations
+  (define (recursive-call i)
+    (if (= k i)
+        (/ (n 1) (d 1))
+        (/ (n i) (+ (d i) (recursive-call (+ i 1))))))
+  (recursive-call 1))
+
+; Takes 10 iterations
+(< (abs (- 0.618033988749894848204586
+        (cont-frac (lambda (i) 1.0) (lambda (i) 1.0) 10)))
+   0.0001)
 
 ; Iterative cont-frac
 (define (cont-frac-iter n d k result) ; Starting result here should be (d k)
@@ -777,7 +775,15 @@ Applicative Order took 18 remainder calculations
                       d
                       (- k 1)
                       (+ (d (- k 1)) (/ (n k) result)))))
-(cont-frac-iter (lambda (i) 1.0)
-                (lambda (i) 1.0)
-                11
-                1.0)
+
+
+
+; Exercise 1.38
+(define (int-div a b)
+  (- (/ a b) (/ (remainder a b) b)))
+(define (d-proc i)
+  (if (= (remainder (+ i 1) 3) 0)
+      (* (+ (int-div i 3) 1) 2)
+      1))
+(+ (cont-frac (lambda (i) 1.0) d-proc 100) 2) ; Estimating e
+                         
