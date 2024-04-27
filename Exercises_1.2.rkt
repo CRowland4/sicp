@@ -758,7 +758,7 @@ Applicative Order took 18 remainder calculations
 (define (cont-frac n d k)
   (define (recursive-call i)
     (if (= k i)
-        (/ (n 1) (d 1))
+        (/ (n i) (d i))
         (/ (n i) (+ (d i) (recursive-call (+ i 1))))))
   (recursive-call 1))
 
@@ -786,4 +786,26 @@ Applicative Order took 18 remainder calculations
       (* (+ (int-div i 3) 1) 2)
       1))
 (+ (cont-frac (lambda (i) 1.0) d-proc 100) 2) ; Estimating e
-                         
+
+
+
+; Exercise 1.39
+(define (tan-cf x k)
+  (define (cont-frac-tan d)
+    (define (recursive-call i)
+    (if (= k i)
+        (/ (if (= 1 k)
+               x
+               (* (square x) -1))
+           (d i))
+        (/ (if (= 1 i)
+               x
+               (* (square x) -1))
+           (+ (d i) (recursive-call (+ i 1))))))
+  (recursive-call 1))
+  (cont-frac-tan d-tan))
+(define (d-tan i)
+ (- (* i 2) 1))
+
+; Estimate tan(pi/4) = 1
+(tan-cf (/ 3.14159 4) 100)
