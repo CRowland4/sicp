@@ -276,3 +276,15 @@
 (define (compose f g)
   (lambda (x) (f (g x))))
 ((compose square inc) 6)
+
+
+
+; Exercise 1.43
+(define (repeated f k)
+  (define (recurse start)
+    (if (= start (- k 1))
+        (lambda (x) (f x))
+        (compose f (recurse (+ start 1)))))
+  (recurse 0))
+((repeated square 2) 5)
+          
