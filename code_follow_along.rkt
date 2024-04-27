@@ -333,3 +333,64 @@
 (define (fixed-pt-sqrt x)
   (fixed-point (lambda (y) (average y (/ x y)))
                1.0))
+
+
+
+; Procedure that returns a procedure for average damping
+
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+
+; Applied to the square procedure
+((average-damp square) 10)
+
+; Square root procedure using the new average damp procedure
+(define (sqrt-damp x)
+  (fixed-point (average-damp (lambda (y) (/ x y)))
+               1.0))
+
+; Cube root procedure using the new average damp procedure
+(define (cube-root x)
+  (fixed-point (average-damp (lambda (y) (/ x (square y))))
+               1.0))
+
+
+
+; Procedure for derivatives
+(define dx 0.00001)
+(define (deriv g)
+  (lambda (x) (/ (- (g (+ x dx)) (g x)) dx)))
+
+; Using the derivative procedure to estimate the derivative of the cube function at 5, which is 75
+((deriv cube) 5)
+
+
+
+; Using the deriv procedure to write a procedure for Newton's method
+(define (newton-transform g)
+  (lambda (x) (- x (/ (g x) ((deriv g) x)))))
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) guess))
+
+; Using Newton's method for a new sqrt procedure
+(define (sqrt-newton x)
+  (newtons-method
+   (lambda (y) (- (square y) x)) 1.0))
+
+
+
+; Generalized fixed-point transformation procedure
+(define (fixed-point-of-transform g transform guess)
+  (fixed-point (transform g) guess))
+
+; Generalized sqrt procedure with average-damping
+(define (sqrt-generalized x)
+  (fixed-point-of-transform
+   (lambda (y) (/ x y)) average-damp 1.0))
+(sqrt-generalized 121)
+
+; Generalized fixed-point transformation with Newtono's method
+(define (sqrt-generalized-newton x)
+  (fixed-point-of-transform
+   (lambda (y) (- (square y) x)) newton-transform 1.0))
+(sqrt-generalized-newton 225)
