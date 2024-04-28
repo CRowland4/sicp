@@ -352,6 +352,28 @@
   (display (nth-root-augmented n x))
   (calculate-roots-augmented (+ n 1) x))
         
-  
-  
+    
 
+; Exercise 1.46
+(define (iterative-improve good-enough? improve)
+  (define (iter-call guess)
+    (if (good-enough? guess)
+        guess
+        (iter-call (improve guess))))
+  iter-call)
+
+; Sqrt procedure from 1.1.7 rewritten in terms of iterative-improve
+(define (sqrt-iter-improve guess x)
+  (define (sqrt-good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (sqrt-improve guess)
+    (average guess (/ x guess)))
+  ((iterative-improve sqrt-good-enough? sqrt-improve) guess))
+
+; Fixed-point procedure from 1.3.3 rewritten  in terms of iterative-improve
+(define (fixed-point-iter-improve f guess)
+  (define (fixed-point-close-enough? guess)
+    (< (abs (- (f guess) guess))
+       .000001))
+  ((iterative-improve fixed-point-close-enough? f) guess))
+                       
