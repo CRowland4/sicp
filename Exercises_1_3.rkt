@@ -370,7 +370,7 @@
     (average guess (/ x guess)))
   ((iterative-improve sqrt-good-enough? sqrt-improve) guess))
 
-; Fixed-point procedure from 1.3.3 rewritten  in terms of iterative-improve
+; Fixed-point procedure from 1.3.3 rewritten in terms of iterative-improve
 (define (fixed-point-iter-improve f guess)
   (define (fixed-point-close-enough? guess)
     (< (abs (- (f guess) guess))
