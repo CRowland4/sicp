@@ -287,4 +287,71 @@
         (compose f (recurse (+ start 1)))))
   (recurse 0))
 ((repeated square 2) 5)
-          
+
+
+
+; Exercise 1.44
+(define (smooth f)
+  (lambda (x) (/ (+ ((f (- x dx)) (f x) (f (+ x dx)))) 3)))
+
+; Repeated smoothing
+(define (repeated-smoothing f n)
+  ((repeated smooth n) f))
+
+
+
+; Exercise 1.45
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+(define (average x y)
+    (/ (+ x y) 2))
+(define (power n x)
+  (if (= n 1)
+      x
+      (* x (power (- n 1) x))))
+
+; Nth root
+(define (nth-root n x damp-count)
+  (fixed-point ((repeated average-damp damp-count) (lambda (y) (/ x (power (- n 1) y))))
+               1.0))
+
+; Procedure to calculate roots until one of them hangs to find pattern
+(define (calculate-roots n x damp-count)
+  (newline)
+  (display n)
+  (display " -> ")
+  (display (nth-root n x damp-count))
+  (calculate-roots (+ n 1) 1000 damp-count))
+
+; (calculate-roots 2 1000 1) One damp count fails on 4th roots
+; (calculate-roots 2 1000 2) Two damps fails on 8th roots
+; (calculate-roots 2 1000 3) Three damps fails on 16th roots
+; (calculate-roots 2 1000 4) Four damps fails on 32 roots
+; (calculate-roots 2 1000 5) Five damps fails on 64 roots
+; (calculate-roots 2 1000 6) Six damps fails on 128 roots
+; (calculate-roots 2 1000 7) Seven damps fails on 256 roots
+; Conclusion is that k damps will be able to calculate up to (but not including) the 2^(k + 1)th root
+
+; Solution: Nth-root function where damp-count dynamically calculated based on the root requested
+(define (nth-root-augmented n x)
+    (fixed-point ((repeated average-damp (damp-count n))
+                  (lambda (y) (/ x (power (- n 1) y))))
+               1.0))
+(define (damp-count nth-root)
+  (define (damp-finder start)
+    (if (< nth-root (power (+ start 1) 2))
+        start
+        (damp-finder (+ start 1))))
+  (damp-finder 1))
+
+; Test nth-root-augmented procedure
+(define (calculate-roots-augmented n x)
+  (newline)
+  (display n)
+  (display " -> ")
+  (display (nth-root-augmented n x))
+  (calculate-roots-augmented (+ n 1) x))
+        
+  
+  
+
