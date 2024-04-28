@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="04ae212f-5221-42ee-a3ee-de1958f52258" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Exercises_1.2.rkt" beforeDir="false" afterPath="$PROJECT_DIR$/Exercises_1.2.rkt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_follow_along.rkt" beforeDir="false" afterPath="$PROJECT_DIR$/code_follow_along.rkt" afterDir="false" />
-    </list>
+    <list default="true" id="04ae212f-5221-42ee-a3ee-de1958f52258" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,6 +54,7 @@
       <updated>1713137859131</updated>
       <workItem from="1713137860260" duration="1103000" />
       <workItem from="1714133310413" duration="4000" />
+      <workItem from="1714262445554" duration="13000" />
     </task>
     <servers />
   </component>
