@@ -16,6 +16,12 @@
   (display (denom x)))
 
 (define (square x) (* x x))
+
+(define (even? x)
+  (= (remainder x 2) 0))
+
+(define (odd? x)
+  (= (remainder x 2) 1))
 ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ; Exercise 2.1
 (define (make-rat n d)
@@ -149,5 +155,178 @@
 ; Take away is that there's more to it than is initially obvious to create good abstraction barriers
 
 
+
+; Exercise 2.4
+#|
+(define (cons x y)
+  (lambda (m) (m x y)))
+(define (car z)
+  (z (lambda (p q) p)))
+
+(car (cons x y))
+(car (lambda (m) (m x y)))
+((lambda (m) (m x y)) (lambda (p q) p))
+((lambda (p q) p) x y)
+x
+|#
+; With this procedural implementation of cons and car, (car (cons x y)) ultimately reduces down to a procedure that always returns x
+
+; Corresponding cdr
+
+#|
+(define (cdr z)
+  (z (lambda (p q) q)))
+
+(cdr (cons x y))
+(cdr (lambda (m) (m x y)))
+((lambda (m) (m x y)) (lambda (p q) q))
+((lambda (p q) q) x y)
+y
+|#
+
+
+
+; Exercise 2.5
+(define (cons-alt a b)
+  (* (expt 2 a) (expt 3 b)))
+(define (car-alt p)
+  (define (two-dividor current count)
+    (if (even? current)
+        (two-dividor (/ current 2) (+ count 1))
+        count))
+  (two-dividor p 0))
+(define (cdr-alt p)
+  (define (three-dividor current count)
+    (if (= (remainder current 3) 0)
+        (three-dividor (/ current 3) (+ count 1))
+        count))
+  (three-dividor p 0))
+
+
+(define test (cons-alt 1496 429))
+(car-alt test)
+(cdr-alt test)
+
+
+
+; Exercise 2.6
+; Zero is a procedure that receives as input a procedure f and applies f 0 times to f's own input.
+(define zero (lambda (f) (lambda (x) x)))
+(define (add-1 n)
+  (lambda (f) (lambda (x) (f ((n f) x)))))
+
+; Simplification as suggested by the exercise
+#|
+(add-1 zero)
+(lambda (f) (lambda (x) (f ((zero f) x))))
+(lambda (f) (lambda (x) (f (((lambda (f) (lambda (x) x)) f) x))))
+(lambda (f) (lambda (x) (f ((lambda (x) x) x))))
+(lambda (f) (lambda (x) (f x)))  ; So this is one
+|#
+; One is a procedure that receives as input a procedure f and applies f 1 time to f's own input
+(define one (lambda (f) (lambda (x) (f x))))
+
+; Therefore it follows that two is a procedure that receives as input a procedure f and applies f 2 times to f's own input
+(define two (lambda (f) (lambda (x) (f (f x)))))
+
+; Addition
+(define (church+ f g)
+  (lambda (h) (lambda (x) ((g h) ((f h) x)))))
+
+
+
+; Extended Exercise (2.1.4) - Interval Arithmetic
+(define (add-interval x y)
+  (make-interval (+ (lower-bound x) (lower-bound y))
+                 (+ (upper-bound x) (upper-bound y))))
+(define (mul-interval x y)
+  (let ((p1 (* (lower-bound x) (lower-bound y)))
+        (p2 (* (lower-bound x) (upper-bound y)))
+        (p3 (* (upper-bound x) (lower-bound y)))
+        (p4 (* (upper-bound x) (upper-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))
+(define (div-interval x y)
+  (mul-interval
+   x
+   (make-interval (/ 1.0 (upper-bound y))
+                  (/ 1.0 (lower-bound y)))))
+
+; Exercise 2.7
+(define (make-interval a b) (cons a b))
+(define (upper-bound interval)
+  (cdr interval))
+(define (lower-bound interval)
+  (car interval))
+
+; Exercise 2.8
+; What we're actually thinking about is the lower bound on the resistance difference of two intervals. The smallest this could be is if the first
+;     resistor's resistance value was equal to its lower bound, and if the second resistor's resistance value was equal to its upper bound.
+;     Similarly, the max this could be is if the first value was at its maximum and the second value was at its minimum
+(define (sub-interval x y)
+  (make-interval (- (lower-bound x) (upper-bound y))
+                 (- (upper-bound x) (lower-bound y))))
+
+; Exercise 2.9
+; Procedure for the width of an interval
+(define (interval-width x)
+  (/ (- (upper-bound x) (lower-bound x)) 2))
+
+#|
+Process for calculating the width of a sum of two intervals
+
+(interval-width (add-interval x y))
+(interval-width (make-interval (+ (lower-bound x) (lower-bound y))
+                      (+ (upper-bound x) (upper-bound y))))
+(/ (- (+ (upper-bound x) (upper-bound y))
+      (+ (lower-bound x) (lower-bound y)))
+   2)
+
+Switching to mathematical notation, the above is equivalent to
+(up-x + up-y - low-x - low-y) / 2
+((up-x - low-x) / 2) + ((up-y - low-y) / 2)
+(width-x + width-y)
+
+So the width of the sum of two intervals is the sum of the widths of the two intervals
+|#
+
+#|
+Process for calculating the width of a difference of two intervals
+
+(interval-width (sub-interval x y)
+(interval-width (make-interval (- (lower-bound x) (upper-bound y))
+                      (- (upper-bound x) (lower-bound y))))
+(/ (- (- (upper-bound x) (lower-bound y))
+      (- (lower-bound x) (upper-bound y)))
+   2)
+
+And again switching to mathematical notation
+(up-x - low-y - low-x + up-y) / 2
+((up-x - low-x) / 2) + ((up-y - low-y) / 2)
+(width-x + width-y)
+
+
+So the width of the difference of two intervals is also the sum of the widths of the two intervals
+|#
+
+; For multiplication and division, we can't just divide or multiply the widths of the individual intervals.
+; Here are two intervals, with widths of 3 and 18 respectively. If these followed the similar patterns, we would expect a width of 54 for the product,
+;     and 6 for the solution.
+(interval-width (mul-interval (make-interval 4 7) (make-interval 5 23)))  ; 70.5
+(interval-width (div-interval (make-interval 5 23) (make-interval 4 7)))  ; 2.518
+
+; Exercise 2.10
+; We also check for one of the bounds of y being zero, because that is also not able to be calculated
+(define (div-interval-updated x y)
+  (cond ((or (= (upper-bound y) 0)
+             (= (lower-bound y) 0))
+         (error "Invalid division - one of the bounds of interval y is 0"))
+        ((or (and (> (upper-bound x) 0) (< (lower-bound x) 0))
+             (and (> (upper-bound y) 0) (< (lower-bound y) 0)))
+         (error "Invalid division - one of the intervals spans 0"))
+         (mul-interval
+          x
+          (make-interval (/ 1.0 (upper-bound y))
+                         (/ 1.0 (lower-bound y))))))
 
 
