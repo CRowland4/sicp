@@ -147,3 +147,7 @@
 (area rec2)
 
 ; Take away is that there's more to it than is initially obvious to create good abstraction barriers
+
+
+
+

@@ -117,3 +117,16 @@
 (define (denom x)
   (let ((g (gcd (car x) (cdr x))))
     (/ (cdr x) g)))
+
+
+
+; Implementation of cons, car, and cdr using only procedures and no data structures
+(define (cons-modified x y)
+  (define (dispatch m)
+    (cond ((= m 0) x)
+          ((= m 1) y)
+          (else (error "Argument not 0 or 1: CONS" m))))
+  dispatch)
+(define (car-modified z) (z 0))
+(define (cdr-modified z) (z 1))
+           
