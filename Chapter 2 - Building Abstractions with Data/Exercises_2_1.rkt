@@ -239,7 +239,7 @@ y
 (define (add-interval x y)
   (make-interval (+ (lower-bound x) (lower-bound y))
                  (+ (upper-bound x) (upper-bound y))))
-(define (mul-interval x y)
+(define (mul-interval-old x y)  ; Called "old" because it's rewritten in a later exercise
   (let ((p1 (* (lower-bound x) (lower-bound y)))
         (p2 (* (lower-bound x) (upper-bound y)))
         (p3 (* (upper-bound x) (lower-bound y)))
@@ -312,11 +312,11 @@ So the width of the difference of two intervals is also the sum of the widths of
 ; For multiplication and division, we can't just divide or multiply the widths of the individual intervals.
 ; Here are two intervals, with widths of 3 and 18 respectively. If these followed the similar patterns, we would expect a width of 54 for the product,
 ;     and 6 for the solution.
-(interval-width (mul-interval (make-interval 4 7) (make-interval 5 23)))  ; 70.5
+(interval-width (mul-interval-old (make-interval 4 7) (make-interval 5 23)))  ; 70.5
 (interval-width (div-interval (make-interval 5 23) (make-interval 4 7)))  ; 2.518
 
 ; Exercise 2.10
-; We also check for one of the bounds of y being zero, because that is also not able to be calculated
+; We also check for one of the bounds of y being zero, because that is also not able to be calculated (would be division by 0)
 (define (div-interval-updated x y)
   (cond ((or (= (upper-bound y) 0)
              (= (lower-bound y) 0))
@@ -328,5 +328,147 @@ So the width of the difference of two intervals is also the sum of the widths of
           x
           (make-interval (/ 1.0 (upper-bound y))
                          (/ 1.0 (lower-bound y))))))
+
+; Exercise 2.11
+; With 4 possible spots (upper and lower bounds of both intervals) each haveing two possible signs (+ or -), we are left with 16 potential sign combinations.
+;    However, it is not possible to have an interval with a negative upper bound and a positive lower bound. After removing such intervals, we're left with 9
+;    possible sign combinations (which makes sense, because there are 3 valid interval combinations (-, -), (-, +), (+, +), and two spots with three options each gives us 9).
+; Then there are 0s to deal with. We can eliminate several cases with an interval that contains a zero:
+;     (0, 0), because it isn't an interval
+;     (0, -), because this is a "backwards", and therefore invalid, interval
+;     (+, 0), for the same reason as above
+; So the valid choices for intervals that contain a 0 are (0, +) and (-, 0),
+;      and the valid combinations of intervals without a zero are (-, -), (-, +), (+, +).
+; Now we need to know how many interval pairs there are where one of the intervals contains a zero, which is a small combinatorics problem.
+;     Number of pairs where the first interval has a 0, and the second doesn't: 6
+;     Number of pairs where the second interval has a 0, and the first doesn't: 6
+;     Number of pairs where both intervals contain a zero: 4
+;     This gives us a total of 16 potential pairs where a zero is in at leas one of the intervals.
+; Even though we have 16 "new" intervals to consider, each one of those 16 pairs uses a call to make-interval that is already needed by one of the original 9.
+;     So we can add in these 16 combinations as an "or" conditions with the pre-existing conditions for the original 9 pairs, meaning we still really only have 9
+;     cases in the form of 9 different make-interval calls, where still only one of them requires more than 2 multiplications.
+(define (mul-interval x y)
+  (cond ((or (and (> 0 (lower-bound x))  ; Case 1: [(+, +), (+, +)] or [(0, +), (0, +)] or [(0, +), (+, +)] or [(+, +), (0, +)]
+              (> 0 (upper-bound x))
+              (> 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+            (and (= 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (= 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+            (and (= 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (> 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+            (and (> 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (= 0 (lower-bound y))
+                 (> 0 (upper-bound y))))
+         (make-interval (* (lower-bound x) (lower-bound y))
+                        (* (upper-bound x) (upper-bound y))))
+        ((or (and (> 0 (lower-bound x))  ; Case 2: [(+, +), (-, +)] or [(0, +), (-, 0)] or [(0, +), (-, +)] or [(+, +), (-, 0)]
+              (> 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+             (and (= 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (= 0 (upper-bound y)))
+             (and (= 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+             (and (> 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (= 0 (upper-bound y))))
+         (make-interval (* (upper-bound x) (lower-bound y))
+                        (* (upper-bound x) (upper-bound y))))
+        ((or (and (< 0 (lower-bound x))  ; Case 3: [(-, +), (+, +)] or [(-, 0), (0, +)] or [(-, 0), (+, +)] or [(-, +), (0, +)]
+              (> 0 (upper-bound x))
+              (> 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (= 0 (upper-bound x))
+                 (= 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (= 0 (upper-bound x))
+                 (> 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (= 0 (lower-bound y))
+                 (> 0 (upper-bound y))))
+         (make-interval (* (lower-bound x) (upper-bound y))
+                        (* (upper-bound x) (upper-bound y))))
+        ((or (and (> 0 (lower-bound x))  ; Case 4: [(+, +), (-, -)] or [(0, +), (-, -)]
+              (> 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (< 0 (upper-bound y)))
+             (and (= 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (< 0 (upper-bound y))))
+         (make-interval (* (upper-bound x) (lower-bound y))
+                        (* (lower-bound x) (upper-bound y))))
+        ((or (and (< 0 (lower-bound x))  ; Case 5: [(-, -), (+, +)] or [(-, -), (0, +)]
+              (< 0 (upper-bound x))
+              (> 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (< 0 (upper-bound x))
+                 (= 0 (lower-bound y))
+                 (< 0 (upper-bound y))))
+         (make-interval (* (lower-bound x) (upper-bound y))
+                        (* (upper-bound x) (lower-bound y))))
+        ((or (and (< 0 (lower-bound x))  ; Case 6: [(-, -), (-, +)] or [(-, 0), (-, 0)] or [(-, 0), (-, +)] or [(-, -), (-, 0)]
+              (< 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (= 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (= 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (= 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (> 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (< 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (= 0 (upper-bound y))))
+         (make-interval (* (lower-bound x) (upper-bound y))
+                        (* (lower-bound x) (lower-bound y))))
+        ((or (and (< 0 (lower-bound x))  ; Case 7: [(-, +), (-, -)] or [(-, 0), (-, -)] or [(-, +), (-, 0)]
+              (> 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (< 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (= 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (< 0 (upper-bound y)))
+             (and (< 0 (lower-bound x))
+                 (> 0 (upper-bound x))
+                 (< 0 (lower-bound y))
+                 (= 0 (upper-bound y))))
+         (make-interval (* (upper-bound x) (lower-bound y))
+                        (* (lower-bound x) (lower-bound y))))
+        ((and (< 0 (lower-bound x))  ; Case 8: (-, -), (-, -)
+              (< 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (< 0 (upper-bound y)))
+         (make-interval (* (upper-bound x) (upper-bound y))
+                        (* (lower-bound x) (lower-bound y))))
+        ((and (< 0 (lower-bound x))  ; Case 9: (-, +), (-, +) - This is the case that requires more than two multiplications
+              (> 0 (upper-bound x))
+              (< 0 (lower-bound y))
+              (> 0 (upper-bound y)))
+         (make-interval (min (* (lower-bound x) (upper-bound y))
+                             (* (upper-bound x) (lower-bound y)))
+                        (max (* (lower-bound x) (lower-bound y))
+                             (* (upper-bound x) (upper-bound y)))))))
+        
+         
 
 
