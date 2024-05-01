@@ -468,7 +468,90 @@ So the width of the difference of two intervals is also the sum of the widths of
                              (* (upper-bound x) (lower-bound y)))
                         (max (* (lower-bound x) (lower-bound y))
                              (* (upper-bound x) (upper-bound y)))))))
-        
-         
 
+; Exercise 2.12
+(define (make-center-width c w)
+  (make-interval (- c w) (+ c w)))
+(define (center i)
+  (/ (+ (lower-bound i) (upper-bound i)) 2.0))
+(define (width-interval i)
+  (/ (- (upper-bound i) (lower-bound i)) 2.0))
+; If p is uncertainty (as a percent tolerance), w is the width of an interval, and c is the midpoint (center) of an interval, then we have the following relationship
+;     (according to the paragraph above this exercise): p = w/c -> w = cp.
+; So our make-center-percent interval should create the interval with width w, which is [(c - cp), (c + cp)] or [(c(1 - p)), (c(1 + p))]
+(define (make-center-percent c p)  ; Based on the wording of the question, I'll assume that p is not yet in decimal form
+  (make-interval (* c (- 1 (/ p 100.0)))
+                 (* c (+ 1 (/ p 100.0))))) 
+(define (percent i)  ; This procedure returns a percentages as a decimal
+  (abs (/ (width-interval i) (center i))))
+(make-center-percent 5 25)
+(percent (make-center-percent 5 25))
 
+; Exercise 2.13 - Done in Liquid Text, all math
+
+; Exercise 2.14
+(define (par1 r1 r2)  ; Parallel resistance calculation for Rp = (R1*R2)/(R1+R2)
+  (div-interval (mul-interval r1 r2)
+                (add-interval r1 r2)))
+(define (par2 r1 r2)
+  (let ((one (make-interval 1 1)))  ; Parallel resistance calculation for Rp = 1/(1/R2 + 1/R2)
+    (div-interval
+     one (add-interval (div-interval one r1)
+                       (div-interval one r2)))))
+(define a (make-interval 33 34))
+(define b (make-interval 145 150))
+
+(par1 a b)  ; (26.005434782608695 . 28.651685393258425)
+(center (par1 a b))  ; 27.32856008793356
+(percent (par1 a b))  ; 0.04841547820549343
+
+(par2 a b)  ; (26.882022471910112 . 27.717391304347824)
+(center (par2 a b))  ; 27.299706888128966
+(percent(par2 a b))  ; 0.01529995973694804
+
+(define c (make-interval 389 390))
+(div-interval c c)  ; (0.9974358974358974 . 1.0025706940874035)
+(center (div-interval c c))  ; 1.0000032957616505
+(percent (div-interval c c))  ; 0.0025673898642479777
+
+(par1 a c)  ; (30.275943396226413 . 31.4218009478673)
+(center (par1 a c))  ; 30.848872172046857
+(percent (par1 a c))  ; 0.01857211416434188
+
+(par2 a c)  ; (30.419431279620856 . 31.27358490566038)
+(center (par2 a c))  ; 30.84650809264062
+(percent(par2 a c))  ; 0.013845223963021396
+
+; Lem is right - the two equations give different results for the same inputs
+
+(div-interval a a)  ; (0.9705882352941176 . 1.0303030303030303)
+(center (div-interval a a))  ; 1.000445632798574
+(percent (div-interval a a))  ; 0.029844097995545646
+
+(div-interval b b)  ; (0.9666666666666667 . 1.0344827586206897)
+(center (div-interval b b))  ; 1.0005747126436781
+(percent (div-interval b b))  ; 0.03388856978747849
+
+(define d (make-interval 3 100))
+(div-interval d d)  ; (0.03 . 33.33333333333333)
+(center (div-interval d d))  ; 16.681666666666665
+(percent (div-interval d d))  ; 0.9982016185433109
+
+; Given the different intervals produced by a/a, b/b, and c/c, we see that the concept of "1" in this realm of intervals isn't clear.
+
+(div-interval a b)  ; (0.22 . 0.23448275862068965)
+(center (div-interval a b))  ; 0.22724137931034483
+(percent (div-interval a b))  ; 0.031866464339908945
+
+; Clearly Lem is right, and our interval operations don't follow the same rules as standard algebraic operations with numbers
+
+; Exercise 2.15
+; Alyssa's conclusion seems to make sense - R1 and R2 both contain "uncertainty", and it is logical to say that reducing the amount of uncertainty
+;     in the calculation will reduce the amount of uncertainty in the answer. This plays out in every example below - par2 always produces less
+;     uncertainty in its result. By not repeating variables, we don't have to account for the same interva's uncertainty more than once.
+(> (percent (par1 a d)) (percent (par2 a d)))
+(> (percent (par1 b d)) (percent (par2 b d)))
+(> (percent (par1 c d)) (percent (par2 c d)))
+(> (percent (par1 b c)) (percent (par2 b c)))
+(> (percent (par1 a c)) (percent (par2 a c)))
+(> (percent (par1 a b)) (percent (par2 a b)))
