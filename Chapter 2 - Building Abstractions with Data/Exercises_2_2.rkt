@@ -65,7 +65,7 @@
 ;     50 can be used to actually make change.
 ; Example below demonstrates how order doesn't matter
 
-
+#|  Commenting out so it doesn't slow down the rest of the runs
 (define us-coins (list 50 25 10 5 1))
 (define random-us-coins (list 10 1 25 50 5))
 (define uk-coins (list 100 50 20 10 5 2 1 0.5))
@@ -79,3 +79,35 @@
 (cc 100 random-uk-coins)  ; 104561
 (cc 100 (reverse uk-coins))  ; 104561
 (cc 100 (reverse random-uk-coins))  ; 104561
+|#
+
+
+
+; Exercise 2.20
+(define (same-parity x . ints)
+  (let ((parity (remainder x 2)))
+    (define (iter result items)
+      (cond ((null? items) result)
+            ((= parity (remainder (car items) 2))
+             (iter (append result (list (car items))) (cdr items)))
+            (else (iter result (cdr items)))))
+    (iter '() ints)))
+(same-parity 3 1 2 3 4 5 6 7 8 9)
+(same-parity 2 1 2 3 4 5 6 7 8 9 10)
+
+
+
+; Exercise 2.21
+(define (square-list1 items)
+  (if (null? items)
+      nil
+      (cons (car items) (square-list1 (cdr items)))))
+(define (square-list2 items)
+  (map (lambda (x) (* x x)) items))
+
+          
+      
+    
+          
+  
+        
