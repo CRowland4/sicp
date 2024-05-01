@@ -111,10 +111,10 @@
 
 ; Alternate way of reducing rational numbers to lowest terms
 (define (make-rat-alt n d) (cons n d))
-(define (numer x)
+(define (numer-alt x)
   (let ((g (gcd (car x) (cdr x))))
     (/ (car x) g)))
-(define (denom x)
+(define (denom-alt x)
   (let ((g (gcd (car x) (cdr x))))
     (/ (cdr x) g)))
 
@@ -129,4 +129,59 @@
   dispatch)
 (define (car-modified z) (z 0))
 (define (cdr-modified z) (z 1))
-           
+
+
+
+; Manual creation of the "list" (1, 2, 3). We use " '() " instead of the nil keyword, because apparently nil is no longer used in Scheme.
+(cons 1
+      (cons 2
+            (cons 3 '())))
+
+; The same list, but using the "list" primitive. Equivalent to the above definition, but obviously much easier to use
+(list 1 2 3)
+(define one-through-four (list 1 2 3 4))
+one-through-four
+(car one-through-four)  ; 1
+(cdr one-through-four)  ; (2 3 4)
+(car (cdr one-through-four))  ; 2     This could also be (cadr one-through-four). Each "a" between "c" and "r" is a call to "car", and each "d" is a call to "cdr"
+(cons 10 one-through-four)  ; (10 1 2 3 4)
+(cons 5 one-through-four)  ; (5 1 2 3 4)
+
+
+
+; Accessing items from a list by their position (or "index", but that word hasn't been used yet)
+(define (list-ref items n)
+  (if (= n 0)
+      (car items)
+      (list-ref (cdr items) (- n 1))))
+(define squares (list 1 4 9 16 25))
+(list-ref squares 3)
+
+
+
+; Procedure for the length of a list
+(define (length items)
+  (if (null? items)
+      0
+      (+ 1 (length (cdr items)))))
+(define odds (list 1 3 5 7))
+(length odds)
+
+; Iterative implementation of length
+(define (length-iter items)
+  (define (iter a count)
+    (if (null? a)
+        count
+        (length-iter (cdr a) (+1 count))))
+  (length-iter items 0))
+
+
+
+; Procedure for appending one list two another
+(define (append list1 list2)
+  (if (null? list1)
+      list2
+      (cons (car list1) (append (cdr list1) list2))))
+
+
+

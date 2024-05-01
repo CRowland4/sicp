@@ -549,9 +549,27 @@ So the width of the difference of two intervals is also the sum of the widths of
 ; Alyssa's conclusion seems to make sense - R1 and R2 both contain "uncertainty", and it is logical to say that reducing the amount of uncertainty
 ;     in the calculation will reduce the amount of uncertainty in the answer. This plays out in every example below - par2 always produces less
 ;     uncertainty in its result. By not repeating variables, we don't have to account for the same interva's uncertainty more than once.
-(> (percent (par1 a d)) (percent (par2 a d)))
-(> (percent (par1 b d)) (percent (par2 b d)))
-(> (percent (par1 c d)) (percent (par2 c d)))
-(> (percent (par1 b c)) (percent (par2 b c)))
-(> (percent (par1 a c)) (percent (par2 a c)))
-(> (percent (par1 a b)) (percent (par2 a b)))
+(> (percent (par1 a d)) (percent (par2 a d)))  ; true
+(> (percent (par1 b d)) (percent (par2 b d)))  ; true
+(> (percent (par1 c d)) (percent (par2 c d)))  ; true
+(> (percent (par1 b c)) (percent (par2 b c)))  ; true
+(> (percent (par1 a c)) (percent (par2 a c)))  ; true
+(> (percent (par1 a b)) (percent (par2 a b)))  ; true
+
+; Exercise 2.16
+; The explanation for why equivalent algebraic expressions may lead to different answers is given in exercise 2.15.
+;     You're "double counting" the uncertainty for a variable each time that variable shows up in the expression more than one time.
+; I'm not going to spend the time trying to mathematically prove this one way or another, but I will brainstorm a bit. My gut says that yes, there is a way to do this.
+;     My thought is that this would involve doing the calculations themselves with only the centers of the intervals, and then introducing the uncertainty of each interval
+;     into the final answer. Each interval would have a value, or data structure, or something, attached to it that somehow represents its uncertainty.
+;     Then there would be some mechanism for integrating those uncertainties into the final answer.
+; Since the uncertainty of one combination of intervals may differ from the uncertainty of combining the same intervals with a different operation (i.e. I1 + I2 vs I1 / I2),
+;     it could be neccessary to have one uncertainty "structure" for each combination of variables in the initial expression. This could be attached to each interval-operation
+;     pair, so (+ I1) would be added to the "net" uncertainty if R1 was added to some other value in the problem, or (/ I2) if some value was divided by I2 at some point.
+; I did a very small amount of reading into this, and apparently this is related to (or just *is*) the Dependency Problem in mathematics. I'm satisfied with not answering this
+;     question explicitly, as it seems like the point is to gain an appreciation and respect for the flexibility and complexity of data abstractions, rather than to come up
+;     with a mathematically rigorous solution to a complex problem (I can't even figure out whether or not this problem even HAS been solved yet).
+; My "brainstorming" is also potentially way off the mark, since it isn't obvious that it has anything to do with satisfying the properties of an algebraic field, which
+;     play heavily into an actual potential solution to this problem.
+
+; Exercise 2.17
