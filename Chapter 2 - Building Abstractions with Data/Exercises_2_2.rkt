@@ -163,19 +163,143 @@
 
 
 ; Exercise 2.27
-#|
-  (define (reverse items)
-  (if (null? items)
-      items
-      (append (reverse (cdr items)) (list (car items)))))
-  |#
-
 (define (deep-reverse items)
   (cond ((null? items) items)
         ((pair? (car items))
          (append (deep-reverse (cdr items)) (list (deep-reverse (car items)))))
         (else (append (deep-reverse (cdr items)) (list (car items))))))
-(define x (list 1 2 (list 1 (list 1 2 3 4 5) 2) 3 4 (list 3 4) 3))
-(deep-reverse x)
+
+
+
+; Exercise 2.28
+(define (fringe items)
+  (cond ((null? items) items)
+        ((pair? (car items))
+         (append (fringe (car items)) (fringe (cdr items))))
+        (else (append (list (car items)) (fringe (cdr items))))))
+
+
+
+; Exercise 2.29
+(define (make-mobile left right)
+  (list left right))
+(define (make-branch len structure)
+  (list len structure))
+
+; Part a - Selectors
+(define (left-branch mobile)
+  (car mobile))
+(define (right-branch mobile)
+  (cadr mobile))
+(define (branch-length branch)
+  (car branch))
+(define (branch-structure branch)
+  (cadr branch))
+
+; Part b
+(define (total-weight mobile)
+  (let ((left-has-mobile (pair? (branch-structure (left-branch mobile))))
+        (right-has-mobile (pair? (branch-structure (right-branch mobile)))))
+    (cond ((and left-has-mobile right-has-mobile)
+           (+ (total-weight (branch-structure (left-branch mobile)))
+             (total-weight (branch-structure (right-branch mobile)))))
+          (left-has-mobile
+           (+ (total-weight (branch-structure (left-branch mobile)))
+              (branch-structure (right-branch mobile))))
+          (right-has-mobile
+           (+ (total-weight (branch-structure (right-branch mobile)))
+              (branch-structure (left-branch mobile))))
+          (else
+           (+ (branch-structure (left-branch mobile))
+              (branch-structure (right-branch mobile)))))))
+
+(define test-mobile (make-mobile (make-branch 1 (make-mobile (make-branch 3 4)
+                                                              (make-branch 4 (make-mobile (make-branch 5 3) (make-branch 6 7)))))
+                                 (make-branch 2 (make-mobile (make-branch 10 (make-mobile (make-branch 7 1) (make-branch 8 2)))
+                                                             (make-branch 9 5)))))
+(total-weight test-mobile)
+
+; Part c
+(define (balanced? mobile)
+  (let ((left-structure (branch-structure (left-branch mobile)))
+        (right-structure (branch-structure (right-branch mobile)))
+        (branches-torques-equal? (= (branch-torque (left-branch mobile))
+                                    (branch-torque (right-branch mobile)))))
+    (cond ((not branches-torques-equal?) false)
+          ((and (pair? right-structure) (pair? left-structure))
+           (and (balanced? right-structure) (balanced? left-structure)))
+          ((pair? left-structure)
+           (balanced? left-structure))
+          ((pair? right-structure)
+           (balanced? right-structure))
+          (else true))))
+(define (branch-torque branch)
+  (let ((branch-item (branch-structure branch)))
+    (if (pair? branch-item)
+      (* (branch-length branch) (total-weight branch-item))
+      (* (branch-length branch) branch-item))))
+
+(branch-torque (left-branch test-mobile))
+(branch-torque (right-branch test-mobile))
+(balanced? test-mobile)
+
+; Part d
+(define (make-mobile-cons left right)
+  (cons left right))
+(define (make-branch-cons len structure)
+  (cons len structure))
+; left-branch can stay the same
+(define (right-branch-cons mobile)
+  (cdr mobile))  ; This line of right-branch changes from "(cadr mobile))" to "(cdr mobile))"
+; branch-length can stay the same
+(define (branch-structure-cons branch)
+  (cdr branch))  ; This line of branch-structure changes from "(cadr branch))" to "(cdr branch))"
+(define (total-weight-cons mobile)  ; Changed procedure references to use the "-cons" versions, but nothing else in total-weight
+  (let ((left-has-mobile (pair? (branch-structure-cons (left-branch mobile))))
+        (right-has-mobile (pair? (branch-structure-cons (right-branch-cons mobile)))))
+    (cond ((and left-has-mobile right-has-mobile)
+           (+ (total-weight-cons (branch-structure-cons (left-branch mobile)))
+             (total-weight-cons (branch-structure-cons (right-branch-cons mobile)))))
+          (left-has-mobile
+           (+ (total-weight-cons (branch-structure-cons (left-branch mobile)))
+              (branch-structure-cons (right-branch-cons mobile))))
+          (right-has-mobile
+           (+ (total-weight-cons (branch-structure-cons (right-branch-cons mobile)))
+              (branch-structure-cons (left-branch mobile))))
+          (else
+           (+ (branch-structure-cons (left-branch mobile))
+              (branch-structure-cons (right-branch-cons mobile)))))))
+(define (balanced?-cons mobile)  ; Changed procedure references to use the "-cons" versions, but nothing else in balanced?
+  (let ((left-structure (branch-structure-cons (left-branch mobile)))
+        (right-structure (branch-structure-cons (right-branch-cons mobile)))
+        (branches-torques-equal? (= (branch-torque-cons (left-branch mobile))
+                                    (branch-torque-cons (right-branch-cons mobile)))))
+    (cond ((not branches-torques-equal?) false)
+          ((and (pair? right-structure) (pair? left-structure))
+           (and (balanced? right-structure) (balanced? left-structure)))
+          ((pair? left-structure)
+           (balanced? left-structure))
+          ((pair? right-structure)
+           (balanced? right-structure))
+          (else true))))
+(define (branch-torque-cons branch)  ; Changed procedure references to use the "-cons" versions, but nothing else in branch-torque
+  (let ((branch-item (branch-structure-cons branch)))
+    (if (pair? branch-item)
+      (* (branch-length branch) (total-weight-cons branch-item))
+      (* (branch-length branch) branch-item))))
+; The only changes necessary were in right-branch and branch-structure, changing cadr to cdr
+(define test-mobile-cons (make-mobile-cons (make-branch-cons 1 (make-mobile-cons (make-branch-cons 3 4)
+                                                              (make-branch-cons 4 (make-mobile-cons (make-branch-cons 5 3) (make-branch-cons 6 7)))))
+                                 (make-branch-cons 2 (make-mobile-cons (make-branch-cons 10 (make-mobile-cons (make-branch-cons 7 1) (make-branch-cons 8 2)))
+                                                             (make-branch-cons 9 5)))))
+(branch-torque-cons (left-branch test-mobile-cons))
+(branch-torque-cons (right-branch-cons test-mobile-cons))
+(balanced?-cons test-mobile-cons)
+    
+  
+                                              
+          
+         
+         
 
   
