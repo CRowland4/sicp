@@ -9,8 +9,15 @@
       (gcd b (remainder a b))))
 (define nil '())
 
+(define (square x)
+  (* x x))
 
-
+(define (fib n)
+  (fib-iter 1 0 n))
+(define (fib-iter a b count)
+  (if (= count 0)
+      b
+      (fib-iter (+ a b) a (- count 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Linear combination where all arguments are number
@@ -248,5 +255,97 @@ one-through-four
        tree))
 (scale-tree-map test-tree 10)
 
+
+
+; Procedure for computing the sum of squares of odd leaves of a tree
+(define (sum-odd-squares tree)
+  (cond ((null? tree) 0)
+        ((not (pair? tree))
+         (if (odd? tree) (square tree) 0))
+        (else (+ (sum-odd-squares (car tree))
+                 (sum-odd-squares (cdr tree))))))
+
+; Make a list of all even Fibonacci numbers Fib(k) where k is less than or equal to a given integer n
+(define (even-fibs n)
+  (define (next k)
+    (if (> k n)
+        nil
+        (let ((f (fib k)))
+          (if (even? f)
+              (cons f (next (+ k 1)))
+              (next (+ k 1))))))
+    (next 0))
+
+
+
+; Procedure for filtering (this is actually a primitive in Scheme)
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+(filter odd? (list 1 2 3 4 5))
+
+
+
+; Procedure for accumulation
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+(accumulate + 0 (list 1 2 3 4 5))
+(accumulate * 1 (list 1 2 3 4 5))
+(accumulate cons nil (list 1 2 3 4 5))
+
+
+
+; Procedure for enumerating integers over an interval
+(define (enumerate-interval low high)
+  (if (> low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
+(enumerate-interval 2 7)
+
+
+
+; Procedure for enumerating the leaves of a tree
+(define (enumerate-tree tree)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (list tree))
+        (else (append (enumerate-tree (car tree))
+                      (enumerate-tree (cdr tree))))))
+(enumerate-tree (list 1 (list 2 (list 3 4) 5)))
+
+
+
+; New way to sum the squares of the odd leaves of a tree using these new procedures
+(define (sum-odd-squares-new tree)
+  (accumulate
+   + 0 (map square (filter odd? (enumerate-tree tree)))))
+
+; Similar rewrite of the gathering of the even Fibonacci numbers below a threshold
+(define (even-fibs-new n)
+  (accumulate
+   cons nil (map fib (enumerate-interval 0 n))))
+
+; Make a list of squares of the first n + 1 Fibonacci numbers
+(define (list-fib-squares n)
+  (accumulate
+   cons nil (map square (map fib (enumerate-interval 0 n)))))
+(list-fib-squares 10)
+
+; Prodcut of the squares of odd integers in a sequence
+(define (product-of-squares-of-odd-elements sequence)
+  (accumulate
+   * 1 (map square (filter odd? sequence))))
+(product-of-squares-of-odd-elements (list 1 2 3 4 5))
+
+; Potential procedure to find highest-paid programmer salary from a sequence of employee records
+#|     Commented out because this is just a hypothetical, so we don't have the procedures used here
+(define (salary-of-highest-paid-programmer records)
+  (accumulate max 0 (map salary (filter programmer? records))))
+|#
 
 

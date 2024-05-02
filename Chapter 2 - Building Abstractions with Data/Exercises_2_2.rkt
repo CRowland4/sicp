@@ -5,7 +5,14 @@
 (define (square x)
   (* x x))
 
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Exercise 2.17
 (define (last-pair in-list)
   (let ((but-first (cdr in-list)))
@@ -339,14 +346,33 @@
       (list nil)
       (let ((rest (subsets (cdr s))))
         (append rest (map
-                      (lambda (set) (append set (list (car s))))
-                      rest))))) 
+                      (lambda (set) (cons (car s) set))
+                      rest)))))
 (subsets (list 1 2 3))
 
 
 
 ; Exercise 2.33
+; Main takeaway here is that <x> in the lambda (x y) procedures can be thought of as the next element in the sequence, and y is the result so far
+(define (map2.33 p sequence)
+  (accumulate (lambda (x y) (cons (p x) y)) nil sequence))
+(map2.33 square (list 1 2 3 4 5))
 
+(define (append2.33 seq1 seq2)
+  (accumulate cons seq2 seq1))
+(append2.33 (list 1 2 3) (list 4 5 6))
+
+(define (length2.33 sequence)
+  (accumulate (lambda (x y) (+ y (if (not (pair? x)) 1 0))) 0 sequence))
+(length2.33 (list 1 2 3 4 5 6))
+
+#|
+  (define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+|#
     
   
                                               
