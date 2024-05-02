@@ -210,7 +210,23 @@ one-through-four
 (define (scale-list items factor)
   (map (lambda (x) (* x factor)) items))
 (scale-list (list 1 2 3 4 5) 10)
-      
+
+
+
+; Procedure for counting leaves of a tree
+(define (count-leaves x)
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
+(define foo (cons (list 1 2) (list 3 4)))
+(length foo)  ; 3
+(count-leaves foo)  ; 4
+(list foo foo)
+(length (list foo foo))  ; 2
+(count-leaves (list foo foo))  ; 8
+(length (cons 1 (list 2)))  ; 2
+(count-leaves (cons 1 (list 2)))  ; 2
 
 
 

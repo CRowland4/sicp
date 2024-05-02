@@ -140,5 +140,20 @@
 
 ; Exercise 2.23
 (define (for-each-alt proc items)
-  (
-(for-each square (list 1 2 3 4 5))
+  (if (null? items)
+      true
+      ((lambda (x) (proc (car x)) (for-each-alt proc (cdr x))) items)))  ; Lambdas are
+
+
+
+; Exercise 2.24 - Done in LiquidText
+
+
+
+; Exercise 2.25
+
+
+
+
+
+    
