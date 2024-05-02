@@ -1,4 +1,11 @@
 #lang scheme
+; Everything between here and the row of semi-colons is defined so the exercises have access to them
+(define nil '())
+
+(define (square x)
+  (* x x))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Exercise 2.17
 (define (last-pair in-list)
   (let ((but-first (cdr in-list)))
@@ -101,13 +108,37 @@
 (define (square-list1 items)
   (if (null? items)
       nil
-      (cons (car items) (square-list1 (cdr items)))))
+      (cons (square (car items)) (square-list1 (cdr items)))))
 (define (square-list2 items)
   (map (lambda (x) (* x x)) items))
+(define nums (list 1 2 3 4 5))
+(square-list1 nums)
+(square-list2 nums)
 
-          
-      
-    
-          
-  
-        
+
+
+; Exercise 2.22
+(define (square-list3 items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons (square (car things))  ; <answer> is initially empty. These two lines are combining the first element if items with the answer in a "right to left" way,
+                    answer))))             ;    so the list gets reversed
+  (iter items nil))
+
+(define (square-list4 items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons answer  ; This line is using cons on a list and a number, so it will produce a nest of lists rather than a single list. It should use append instead
+                    (square (car things))))))
+  (iter items nil))
+
+
+
+; Exercise 2.23
+(define (for-each-alt proc items)
+  (
+(for-each square (list 1 2 3 4 5))
