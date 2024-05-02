@@ -178,7 +178,7 @@ one-through-four
 
 
 
-; Procedure for appending one list two another
+; Procedure for appending one list to another
 (define (append list1 list2)
   (if (null? list1)
       list2
