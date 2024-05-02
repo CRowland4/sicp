@@ -12,20 +12,14 @@
     (if (null? but-first)
       in-list
       (last-pair but-first))))
-(last-pair (list 23 72 149 34))
-(last-pair (list 1 2 3 4 5 5 6 7 8 9))
 
 
 
 ; Exercise 2.18
-(define (reverse in-list)
-  (let ((but-first (cdr in-list)))
-    (if (null? but-first)
-      in-list
-      (append (reverse but-first)
-              (list (car in-list))))))
-(reverse (list 1 4 9 16 25))
-(reverse (list 1 2 3 4 5 6 7 8 9 10 11 12))
+(define (reverse items)
+  (if (null? items)
+      items
+      (append (reverse (cdr items)) (list (car items)))))
 
 
 
@@ -99,8 +93,6 @@
              (iter (append result (list (car items))) (cdr items)))
             (else (iter result (cdr items)))))
     (iter '() ints)))
-(same-parity 3 1 2 3 4 5 6 7 8 9)
-(same-parity 2 1 2 3 4 5 6 7 8 9 10)
 
 
 
@@ -111,9 +103,6 @@
       (cons (square (car items)) (square-list1 (cdr items)))))
 (define (square-list2 items)
   (map (lambda (x) (* x x)) items))
-(define nums (list 1 2 3 4 5))
-(square-list1 nums)
-(square-list2 nums)
 
 
 
@@ -151,9 +140,42 @@
 
 
 ; Exercise 2.25
+(define first (list 1 3 (list 5 7) 9))
+(define second (list (list 7)))
+(define third (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7)))))))
+
+#|
+(car (cdr (car (cdr (cdr first))))) -> 7
+(car (car second)) -> 7
+(car (cdr (car (cdr (car (cdr (car (cdr (car (cdr (car (cdr third)))))))))))) -> 7
+|#
+
+
+; Exercise 2.26
+#|
+(define list-x (list 1 2 3))
+(define list-y (list 4 5 6))
+(append list-x list-y) -> (1 2 3 4 5 6)
+(cons list-x list-y) -> ((1 2 3) 4 5 6)
+(list list-x list-y) -> ((1 2 3) (4 5 6))
+|#
 
 
 
+; Exercise 2.27
+#|
+  (define (reverse items)
+  (if (null? items)
+      items
+      (append (reverse (cdr items)) (list (car items)))))
+  |#
 
+(define (deep-reverse items)
+  (cond ((null? items) items)
+        ((pair? (car items))
+         (append (deep-reverse (cdr items)) (list (deep-reverse (car items)))))
+        (else (append (deep-reverse (cdr items)) (list (car items))))))
+(define x (list 1 2 (list 1 (list 1 2 3 4 5) 2) 3 4 (list 3 4) 3))
+(deep-reverse x)
 
-    
+  
