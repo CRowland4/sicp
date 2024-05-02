@@ -571,5 +571,3 @@ So the width of the difference of two intervals is also the sum of the widths of
 ;     with a mathematically rigorous solution to a complex problem (I can't even figure out whether or not this problem even HAS been solved yet).
 ; My "brainstorming" is also potentially way off the mark, since it isn't obvious that it has anything to do with satisfying the properties of an algebraic field, which
 ;     play heavily into an actual potential solution to this problem.
-
-; Exercise 2.17

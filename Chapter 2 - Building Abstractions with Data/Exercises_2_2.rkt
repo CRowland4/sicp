@@ -295,6 +295,58 @@
 (branch-torque-cons (left-branch test-mobile-cons))
 (branch-torque-cons (right-branch-cons test-mobile-cons))
 (balanced?-cons test-mobile-cons)
+
+
+
+; Exercise 2.30
+(define (square-tree-direct tree)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (square tree))
+        (else (cons (square-tree-direct (car tree))
+                    (square-tree-direct (cdr tree))))))
+(define (square-tree-recurs tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (square-tree-recurs sub-tree)
+             (square sub-tree)))
+       tree))
+(define test-tree (list 1
+                        (list 2 (list 3 4) 5)
+                        (list 6 7)))
+(square-tree-recurs test-tree)
+(square-tree-direct test-tree)
+
+
+
+; Exercise 2.31
+(define (tree-map proc tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (tree-map proc sub-tree)
+             (proc sub-tree)))
+       tree))
+(tree-map square test-tree)
+
+
+
+; Exercise 2.32
+; With the recursion process, we eventually reach a point where the empty set is returned, so <rest> is (()) because of calling list on nil, and a <s> of (3),
+;   or the last element of the initial set <s>. So our <rest> becomes (() (3)) in the previous frame. We need to keep these legitimate subsets of the initial <s>,
+;   but we also need to add the rest of the numbers from the original set. So we create a new list by adding one more number from <s> into each of the existing sets,
+;   and then append this newly created list to the subsets we already have.
+(define (subsets s)
+  (if (null? s)
+      (list nil)
+      (let ((rest (subsets (cdr s))))
+        (append rest (map
+                      (lambda (set) (append set (list (car s))))
+                      rest))))) 
+(subsets (list 1 2 3))
+
+
+
+; Exercise 2.33
+
     
   
                                               
