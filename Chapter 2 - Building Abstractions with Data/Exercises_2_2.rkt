@@ -387,7 +387,7 @@
 (define (count-leaves-acc tree)
   (accumulate +
               0
-              (map (lambda (x) (/ x x)) (enumerate-tree tree))))
+              (map (lambda (x) 1) (enumerate-tree tree))))
 (count-leaves-acc test-tree)
 
 
@@ -400,6 +400,30 @@
             (accumulate-n op init (map cdr seqs)))))
 (define test-seqs (list (list 1 2 3) (list 4 5 6) (list 7 8 9) (list 10 11 12)))
 (accumulate-n + 0 test-seqs)
+
+
+
+; Exercise 2.37
+(define matrix (list (list 1 2 3 4) (list 4 5 6 6) (list 6 7 8 9)))
+(define square-matrix (list (list 3 2 2) (list 2 2 2) (list 2 2 2)))
+(define vector (list 1 1 1 1))
+
+(define (dot-product v w)
+  (accumulate + 0 (map * v w)))
+
+(define (matrix-*-vector m v)
+  (map (lambda (row-m) (dot-product row-m v)) m))
+(matrix-*-vector matrix vector)
+
+(define (transpose mat)
+  (accumulate-n cons '() mat))
+(transpose matrix)
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (lambda (row-m) (matrix-*-vector cols row-m)) m)))
+(matrix-*-matrix square-matrix square-matrix)
+
          
 
   
