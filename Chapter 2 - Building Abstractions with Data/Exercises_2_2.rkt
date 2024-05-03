@@ -51,8 +51,8 @@
 (define (last-pair in-list)
   (let ((but-first (cdr in-list)))
     (if (null? but-first)
-      in-list
-      (last-pair but-first))))
+        in-list
+        (last-pair but-first))))
 
 
 
@@ -243,7 +243,7 @@
         (right-has-mobile (pair? (branch-structure (right-branch mobile)))))
     (cond ((and left-has-mobile right-has-mobile)
            (+ (total-weight (branch-structure (left-branch mobile)))
-             (total-weight (branch-structure (right-branch mobile)))))
+              (total-weight (branch-structure (right-branch mobile)))))
           (left-has-mobile
            (+ (total-weight (branch-structure (left-branch mobile)))
               (branch-structure (right-branch mobile))))
@@ -255,7 +255,7 @@
               (branch-structure (right-branch mobile)))))))
 
 (define test-mobile (make-mobile (make-branch 1 (make-mobile (make-branch 3 4)
-                                                              (make-branch 4 (make-mobile (make-branch 5 3) (make-branch 6 7)))))
+                                                             (make-branch 4 (make-mobile (make-branch 5 3) (make-branch 6 7)))))
                                  (make-branch 2 (make-mobile (make-branch 10 (make-mobile (make-branch 7 1) (make-branch 8 2)))
                                                              (make-branch 9 5)))))
 (total-weight test-mobile)
@@ -277,8 +277,8 @@
 (define (branch-torque branch)
   (let ((branch-item (branch-structure branch)))
     (if (pair? branch-item)
-      (* (branch-length branch) (total-weight branch-item))
-      (* (branch-length branch) branch-item))))
+        (* (branch-length branch) (total-weight branch-item))
+        (* (branch-length branch) branch-item))))
 
 (branch-torque (left-branch test-mobile))
 (branch-torque (right-branch test-mobile))
@@ -300,7 +300,7 @@
         (right-has-mobile (pair? (branch-structure-cons (right-branch-cons mobile)))))
     (cond ((and left-has-mobile right-has-mobile)
            (+ (total-weight-cons (branch-structure-cons (left-branch mobile)))
-             (total-weight-cons (branch-structure-cons (right-branch-cons mobile)))))
+              (total-weight-cons (branch-structure-cons (right-branch-cons mobile)))))
           (left-has-mobile
            (+ (total-weight-cons (branch-structure-cons (left-branch mobile)))
               (branch-structure-cons (right-branch-cons mobile))))
@@ -326,13 +326,13 @@
 (define (branch-torque-cons branch)  ; Changed procedure references to use the "-cons" versions, but nothing else in branch-torque
   (let ((branch-item (branch-structure-cons branch)))
     (if (pair? branch-item)
-      (* (branch-length branch) (total-weight-cons branch-item))
-      (* (branch-length branch) branch-item))))
+        (* (branch-length branch) (total-weight-cons branch-item))
+        (* (branch-length branch) branch-item))))
 ; The only changes necessary were in right-branch and branch-structure, changing cadr to cdr
 (define test-mobile-cons (make-mobile-cons (make-branch-cons 1 (make-mobile-cons (make-branch-cons 3 4)
-                                                              (make-branch-cons 4 (make-mobile-cons (make-branch-cons 5 3) (make-branch-cons 6 7)))))
-                                 (make-branch-cons 2 (make-mobile-cons (make-branch-cons 10 (make-mobile-cons (make-branch-cons 7 1) (make-branch-cons 8 2)))
-                                                             (make-branch-cons 9 5)))))
+                                                                                 (make-branch-cons 4 (make-mobile-cons (make-branch-cons 5 3) (make-branch-cons 6 7)))))
+                                           (make-branch-cons 2 (make-mobile-cons (make-branch-cons 10 (make-mobile-cons (make-branch-cons 7 1) (make-branch-cons 8 2)))
+                                                                                 (make-branch-cons 9 5)))))
 (branch-torque-cons (left-branch test-mobile-cons))
 (branch-torque-cons (right-branch-cons test-mobile-cons))
 (balanced?-cons test-mobile-cons)
@@ -478,7 +478,7 @@
 
 ; In the lambda for fold-left,  y is the next element, and x is the result so far, the reverse of accumulate (fold-right)
 (define (reverse-fold-left sequence)
-  (fold-left (lambda (x y) (append (list y) x)) nil sequence))
+  (fold-left (lambda (x y) (cons y x)) nil sequence))
 (reverse-fold-left (list 1 2 3))
 
 
@@ -495,6 +495,15 @@
 
 
 
-         
-
-  
+; Exercise 2.41
+(define (summed-triples n s)
+  (filter (lambda (triple) (= (accumulate + 0 triple) s)) (distinct-triples n)))
+(define (distinct-triples n)
+  (flatmap (lambda(i)
+             (flatmap (lambda (j)
+                    (map (lambda (k) (list i j k))
+                         (remove i (remove j (enumerate-interval 1 n)))))
+                  (remove i (enumerate-interval 1 n))))
+           (enumerate-interval 1 n)))
+(distinct-triples 4)
+(summed-triples 4 8)

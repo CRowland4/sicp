@@ -375,6 +375,8 @@ one-through-four
 (pairs 5)
 
 ; Generalization of the above procedure into a procedure that maps and accumulates
+; flatmap takes a procedure and a sequence that would normally generate a list of nested lists,
+;   and returns a list of the lists inside the nested lists
 (define (flatmap proc seq)
   (accumulate append nil (map proc seq)))
 
