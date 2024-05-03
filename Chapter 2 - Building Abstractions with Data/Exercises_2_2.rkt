@@ -507,3 +507,69 @@
            (enumerate-interval 1 n)))
 (distinct-triples 4)
 (summed-triples 4 8)
+
+
+
+; Exercise 2.42
+; Everythig is 1-indexed
+(define (create-empty-board size)
+  (map (lambda (x)
+         (map (lambda (y) 0) (enumerate-interval 1 size)))
+       (enumerate-interval 1 size)))
+(define (insert-item array i item)
+  (define (recurs current-position current-array)
+    (cond ((= (length current-array) (length array))
+           current-array)
+          (( = current-position i)
+           (recurs (+ current-position 1) (append current-array (list item))))
+          (else (recurs (+ current-position 1) (append current-array (list (list-ref array (- current-position 1))))))))
+  (recurs 1 '()))
+(define (place-queen size k)  ; Creates a row of size <size> where a queen is in the k'th spot
+  (insert-item (map (lambda (x) 0) (enumerate-interval 1 size))
+               k
+               9))
+; Insert 9 into the row'th row of board in the kth column
+(define (adjoin-position row k board)
+  (insert-item board row (insert-item (list-ref board (- row 1)) k 9)))
+(define (queen-row-safe row board-positions)
+  (< (length (filter (lambda (x) (= x 9)) (list-ref board-positions (- row 1)))) 2))
+; For the diagonals, we only have to check the rows before the given column, since the ones after won't have been inserted yet
+(define (queen-diag-safe queen-row queen-col board-positions)
+  (define (diag-safe-iter proc row col) ; <proc> will be + when we're checking the up-left diagonal, and - when we're checking the bottom-left 
+      (cond ((or (= row 0) (= row (+ (length board-positions) 1)) (= col 0))
+             true)
+            ((= (list-ref (list-ref board-positions (- row 1)) (- col 1)) 9)
+             false)
+            (else (diag-safe-iter proc (proc row 1) (- col 1)))))
+    (and
+     (diag-safe-iter - (- queen-row 1) (- queen-col 1))
+     (diag-safe-iter + (+ queen-row 1) (- queen-col 1))))
+          
+
+(define (safe? k board-positions)
+  (let ((queen-row (kth-queen-row k board-positions)))
+    (and (queen-row-safe queen-row board-positions)
+         (queen-diag-safe queen-row k board-positions))))
+(define (kth-queen-row k board-positions)
+  (list-index (list-ref (transpose board-positions) (- k 1)) 9))                   
+(define (list-index array item)
+  (let ((size (length array)))
+    (define (iter current)
+      (cond ((> current size) false)
+            ((= (list-ref array (- current 1)) item) current)
+            (else (iter (+ current 1)))))
+    (iter 1))) 
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+        (list (create-empty-board board-size))
+        (filter
+         (lambda (positions) (safe? k positions))
+         (flatmap
+          (lambda (rest-of-queens)  ; rest-of-queens is a particular configuration of k - 1 queens placed in the columns before k
+            (map (lambda (new-row)
+                   (adjoin-position
+                    new-row k rest-of-queens))
+                 (enumerate-interval 1 board-size)))
+          (queen-cols (- k 1))))))
+  (queen-cols board-size))
