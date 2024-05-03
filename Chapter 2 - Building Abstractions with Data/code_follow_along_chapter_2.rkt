@@ -33,6 +33,12 @@
 (define (divides? a b)
   (= (remainder b a) 0))
 
+(define (up-split painter n)
+  (if (= n 0)
+      painter
+      (let ((smaller (up-split painter (- n 1))))
+        (below painter (beside smaller smaller)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Linear combination where all arguments are number
@@ -417,6 +423,56 @@ one-through-four
   (filter (lambda (x) (not (= x item)))
           sequence))
 (remove-example 1 (list 1 2 3))
+
+
+
+; The picture language
+(define painter (lambda (x) x))  ; Defined so the other stuff doesn't throw an error
+(define wave (painter "a waving guy"))
+(define (beside painter1 painter2)  ; "Painter that draws <painter1> on the left and <painter2> on the right"
+  painter)
+(define (below painter1 painter2)  ; "Painter that draws <painter1> on the bottom half and <painter2> on the top half"
+  painter)
+(define (flip-vert painter)  ; "Painter that draws <painter> upside down"
+  painter)
+(define (flip-horiz painter)  ; "Painter that draws the the image of <painter> left-to-right reversed"
+  painter)
+
+; Combining painters
+(define wave2 (beside wave (flip-vert wave)))
+(define wave4 (below wave2 wave2))
+
+; Abstracted procedure that generated wave4
+(define (flipped-pairs painter)
+  (let ((painter2 (beside painter (flip-vert painter))))
+    (below painter2 painter2)))
+(define wave4-abstracted (flipped-pairs wave))
+
+; Recursive patterns
+(define (right-split painter n)
+  (if (= n 0)
+      painter
+      (let ((smaller (right-split painter (- n 1))))
+        (beside painter (below smaller smaller)))))
+
+(define (corner-split painter n)
+  (if (= n 0)
+      painter
+      (let ((up (up-split painter (- n 1)))
+            (right (right-split painter (- n 1))))
+        (let ((top-left (beside up up))
+              (bottom-right (below right right))
+              (corner (corner-split painter (- n 1))))
+          (beside (below painter top-left)
+                  (below bottom-right corner))))))
+
+(define (square-limit painter n)
+  (let ((quarter (corner-split painter n)))
+    (let ((half (beside (flip-horiz quarter) quarter)))
+      (below (flip-vert half) half))))
+
+
+
  
             
 

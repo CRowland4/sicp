@@ -45,6 +45,12 @@
 (define (make-pair-sum pair)
   (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
 
+(define (below painter1 painter2)
+  ("Painter that draws <painter1> on the bottom half and <painter2> on the top half"))
+
+(define (beside painter1 painter2)
+  "Painter that draws <painter1> on the left and <painter2> on the right")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.17
@@ -600,4 +606,13 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
      So if T is n queen-cols calls (based on the original procedure), then this (with the squared term dominating) switching of the map calls is T^2? And this is where I think
      I'll stop. Don't want to dive into this rigorously. Scratch work in LiquidText.
 |#
+
+
+
+; Exercise 2.44
+(define (up-split painter n)
+  (if (= n 0)
+      painter
+      (let ((smaller (up-split painter (- n 1))))
+        (below painter (beside smaller smaller)))))
 
