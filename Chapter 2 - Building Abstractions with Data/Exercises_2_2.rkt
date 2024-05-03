@@ -411,18 +411,51 @@
 (define (dot-product v w)
   (accumulate + 0 (map * v w)))
 
-(define (matrix-*-vector m v)
+(define (matrix-*-vector m v)  ; Multiplying a matrix by a vector is just taking the dot product of all the matrix rows with the vector
   (map (lambda (row-m) (dot-product row-m v)) m))
 (matrix-*-vector matrix vector)
 
-(define (transpose mat)
+(define (transpose mat)  ; The transpose of a matrix is just a list of the columns
   (accumulate-n cons '() mat))
 (transpose matrix)
 
-(define (matrix-*-matrix m n)
+(define (matrix-*-matrix m n)  ; Matrix multiplication is just multiplying each row vector of the left matrix by transpose of the right matrix
   (let ((cols (transpose n)))
     (map (lambda (row-m) (matrix-*-vector cols row-m)) m)))
 (matrix-*-matrix square-matrix square-matrix)
+
+
+
+; Exercise 2.38
+(define (fold-left op initial sequence)
+  (define (iter result rest)
+    (if (null? rest)
+        result
+        (iter (op result (car rest))
+              (cdr rest))))
+  (iter initial sequence))
+; I'm using "accumulate" instead of "fold-right" so the code can be run, given that accumulate is defined at the top
+(accumulate / 1 (list 1 2 3)) ; 3/2
+(fold-left / 1 (list 1 2 3)) ; 1/6
+(accumulate list nil (list 1 2 3)) ; (1 (2 (3 ())))
+(fold-left list nil (list 1 2 3)) ; (((() 1) 2) 3)
+; In order for fold-left and fold-right to be equal, op should be associative. In other words (op a (op b c)) should equal (op (op a b) c))
+
+
+
+; Exercise 2.39
+(define (reverse-fold-right sequence)
+  (accumulate (lambda (x y) (append y (list x))) nil sequence))
+(reverse-fold-right (list 1 2 3))
+
+; In the lambda for fold-left,  y is the next element, and x is the result so far, the reverse of accumulate (fold-right)
+(define (reverse-fold-left sequence)
+  (fold-left (lambda (x y) (append (list y) x)) nil sequence))
+(reverse-fold-left (list 1 2 3))
+
+
+
+
 
          
 
