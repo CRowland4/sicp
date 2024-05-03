@@ -573,3 +573,31 @@
                  (enumerate-interval 1 board-size)))
           (queen-cols (- k 1))))))
   (queen-cols board-size))
+
+
+
+; Exercise 2.43
+#|
+(flatmap
+ (lambda (new-row)
+   (map (lambda (rest-of-queens)
+          (adjoin-position
+           new-row k rest-of-queens))
+        (queen-cols (- k 1))))
+ (enumerate-interval 1 board-size))
+
+In the original version of queens, each potential next placement was added to the current state, and then this new list of states is passed through the recursive call.
+   Since each of the n columns has n potential rows to add the queen in, this gives us n^2 calls to queen-cols.
+In this version, (queen-cols k) is being called (length (queen-cols (- k 1))) times, and then (queen-cols (- k 1)) is called (length (queen-cols (- k 2)) times, and so on.
+    Since each call to (queen-cols (- k 1)) is essentially solving an entire board-size with size k-1, this adds considerable time.
+    This is factorial pattern, so estimate that since the original procedure took time T, this one will take time T!.
+
+NOTE: Looks like I was wrong, and it's actually n^n, where n is the board size. This makes more sense, as each call to queen-cols produces it's own tree where each node
+    has another call to queen-cols. I was missng one extra layer in my line of thinking, and it's actually more like the product of the consecutive factorials from 1 to the
+    board size.
+
+NOTE 2: After digging into the "product of consecutive factorials idea" a litle more, I came up with queen-cols being called approximately n^2 + n times in the second procedure.
+     So if T is n queen-cols calls (based on the original procedure), then this (with the squared term dominating) switching of the map calls is T^2? And this is where I think
+     I'll stop. Don't want to dive into this rigorously. Scratch work in LiquidText.
+|#
+
