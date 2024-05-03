@@ -366,14 +366,6 @@
   (accumulate (lambda (x y) (+ y (if (not (pair? x)) 1 0))) 0 sequence))
 (length2.33 (list 1 2 3 4 5 6))
 
-#|
-  (define (accumulate op initial sequence)
-  (if (null? sequence)
-      initial
-      (op (car sequence)
-          (accumulate op initial (cdr sequence)))))
-|#
-    
   
                                               
           
