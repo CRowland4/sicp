@@ -19,6 +19,20 @@
       b
       (fib-iter (+ a b) a (- count 1))))
 
+(define (prime? n)
+  (= n (smallest-divisor n)))
+
+(define (smallest-divisor n)
+  (find-divisor n 2))
+
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+
+(define (divides? a b)
+  (= (remainder b a) 0))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Linear combination where all arguments are number
@@ -348,5 +362,60 @@ one-through-four
 (define (salary-of-highest-paid-programmer records)
   (accumulate max 0 (map salary (filter programmer? records))))
 |#
+
+
+
+; Procedure to find all ordered pairs (i, j) where 1 <= j < i <= n
+(define (pairs n)
+  (accumulate
+   append nil (map (lambda (i)
+                   (map (lambda (j) (list i j))
+                        (enumerate-interval 1 (- i 1))))
+                   (enumerate-interval 1 n))))
+(pairs 5)
+
+; Generalization of the above procedure into a procedure that maps and accumulates
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+; Predicate procedure for filtering out the pairs from a list of pairs whose sum isn't prime
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+
+; Procedure that makes a triplet from a pair, where the third item is the sum of the elements of the pair
+(define (make-pair-sum pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+
+; Complete procedure to find all ordered pairs (i, j) where 1 <= j < i <= n and i + j is prime
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+       (filter prime-sum? (flatmap
+                           (lambda (i)
+                             (map (lambda (j) (list i j))
+                                  (enumerate-interval 1 (- i 1))))
+                             (enumerate-interval 1 n)))))
+(prime-sum-pairs 5)
+
+
+
+; Procedure for finding all the permutations of a sequence
+(define (permutations s)
+  (if (null? s)
+      (list nil)
+      (flatmap (lambda (x)
+                 (map (lambda (p) (cons x p))
+                      (permutations (remove x s))))
+               s)))
+(permutations (list 1 2 3))
+
+
+
+; How the remove primitive can be implemented
+(define (remove-example item sequence)
+  (filter (lambda (x) (not (= x item)))
+          sequence))
+(remove-example 1 (list 1 2 3))
+ 
+            
 
 
