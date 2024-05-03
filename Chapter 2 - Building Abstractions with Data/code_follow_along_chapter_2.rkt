@@ -20,6 +20,7 @@
       (fib-iter (+ a b) a (- count 1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Linear combination where all arguments are number
 (define (linear-combination a b x y)
   (+ (* a x) (* b y)))
