@@ -616,3 +616,30 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
       (let ((smaller (up-split painter (- n 1))))
         (below painter (beside smaller smaller)))))
 
+
+
+; Exercise 2.45
+#|
+(define (right-split painter n)
+  (if (= n 0)
+      painter
+      (let ((smaller (right-split painter (- n 1))))
+        (beside painter (below smaller smaller)))))
+
+(define right-split (split beside below))
+(define up-split (split below beside))
+|#
+(define (split painter1 painter2)
+  (define (iter-split painter n)
+    (if (= n 0)
+        painter
+        (let ((smaller (iter-split painter (- n 1))))
+          (painter1 painter (painter2 smaller smaller)))))
+  iter-split)
+                     
+                   
+                   
+               
+  
+  
+

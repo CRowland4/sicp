@@ -429,13 +429,15 @@ one-through-four
 ; The picture language
 (define painter (lambda (x) x))  ; Defined so the other stuff doesn't throw an error
 (define wave (painter "a waving guy"))
-(define (beside painter1 painter2)  ; "Painter that draws <painter1> on the left and <painter2> on the right"
+(define (beside painter1 painter2)  ; Painter that draws <painter1> on the left and <painter2> on the right
   painter)
-(define (below painter1 painter2)  ; "Painter that draws <painter1> on the bottom half and <painter2> on the top half"
+(define (below painter1 painter2)  ; Painter that draws <painter1> on the bottom half and <painter2> on the top half
   painter)
-(define (flip-vert painter)  ; "Painter that draws <painter> upside down"
+(define (flip-vert painter)  ; Painter that draws <painter> upside down
   painter)
-(define (flip-horiz painter)  ; "Painter that draws the the image of <painter> left-to-right reversed"
+(define (flip-horiz painter)  ; Painter that draws the the image of <painter> left-to-right reversed
+  painter)
+(define (rotate180 painter)  ; Painter that draws the image of painter rotated 180 degrees
   painter)
 
 ; Combining painters
@@ -471,9 +473,17 @@ one-through-four
     (let ((half (beside (flip-horiz quarter) quarter)))
       (below (flip-vert half) half))))
 
+; Abstracting painter operations
+(define (square-of-four tl tr bl br)
+  (lambda (painter)
+    (let ((top (beside (tl painter) (tr painter)))
+          (bottom (beside (bl painter) (br painter))))
+      (below bottom top))))
 
+(define (flipped-pairs-abstraction painter)
+  (let ((combine4 (square-of-four identity flip-vert identity flip-vert)))
+    (combine4 painter)))
 
- 
-            
-
-
+(define (square-limit-abstraction painter n)
+  (let ((combine4 (square-of-four flip-horiz identity rotate180 flip-vert)))
+    (combine4 (corner-split painter n))))
