@@ -619,16 +619,6 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 
 
 ; Exercise 2.45
-#|
-(define (right-split painter n)
-  (if (= n 0)
-      painter
-      (let ((smaller (right-split painter (- n 1))))
-        (beside painter (below smaller smaller)))))
-
-(define right-split (split beside below))
-(define up-split (split below beside))
-|#
 (define (split painter1 painter2)
   (define (iter-split painter n)
     (if (= n 0)
@@ -636,6 +626,43 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
         (let ((smaller (iter-split painter (- n 1))))
           (painter1 painter (painter2 smaller smaller)))))
   iter-split)
+
+
+
+; Exercise 2.46
+; Constructor
+(define (make-vect x y)
+  (cons x y))
+
+(define test-vect (make-vect -3 5))
+
+; Selectors
+(define (xcor-vect vect)
+  (car vect))
+(define (ycor-vect vect)
+  (cdr vect))
+
+(xcor-vect test-vect)
+(ycor-vect test-vect)
+
+; Operations
+(define (add-vect v w)
+  (cons (+ (xcor-vect v) (xcor-vect w))
+        (+ (ycor-vect v) (ycor-vect w))))
+(define (sub-vect v w)
+  (cons (- (xcor-vect v) (xcor-vect w))
+        (- (ycor-vect v) (ycor-vect w))))
+(define (scale-vect scalar v)
+  (cons (* scalar (xcor-vect v))
+        (* scalar (ycor-vect v))))
+
+(add-vect test-vect test-vect)
+(sub-vect test-vect test-vect)
+(scale-vect 3 test-vect)
+
+
+
+
                      
                    
                    

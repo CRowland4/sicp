@@ -426,8 +426,8 @@ one-through-four
 
 
 
-; The picture language
-(define painter (lambda (x) x))  ; Defined so the other stuff doesn't throw an error
+; The picture language - this is all theoretical and won't actually produce pictures in DrRacket, but I'm writing them out for better understanding
+(define painter (lambda (x) x))
 (define wave (painter "a waving guy"))
 (define (beside painter1 painter2)  ; Painter that draws <painter1> on the left and <painter2> on the right
   painter)
@@ -487,3 +487,30 @@ one-through-four
 (define (square-limit-abstraction painter n)
   (let ((combine4 (square-of-four flip-horiz identity rotate180 flip-vert)))
     (combine4 (corner-split painter n))))
+
+
+
+; Frames
+(define frame (list "origin" "edge1" "edge2"))
+
+; Constructor
+(define (make-frame origin-vector edge-vector1 edge-vector2)
+  (list frame origin-vector edge-vector1 edge-vector2))
+
+; Selectors
+(define (origin-frame frame)
+  (list-ref frame 0))
+(define (edge1-frame)
+  (list-ref frame 1))
+(define (edge2-frame)
+  (list-ref frame 2))
+
+; Frame coordinate map
+(define (frame-coord-map frame)
+  (lambda (v)
+    (add-vect
+     (origin-frame frame)
+     (add-vect (scale-vect (xcor-vect v) (edge1-frame frame))
+               (scale-vect (ycor-vect v) (edge2-frame frame))))))
+  
+
