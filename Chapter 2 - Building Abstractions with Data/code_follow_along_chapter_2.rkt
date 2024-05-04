@@ -39,6 +39,19 @@
       (let ((smaller (up-split painter (- n 1))))
         (below painter (beside smaller smaller)))))
 
+(define (add-vect v w)
+  (cons (+ (xcor-vect v) (xcor-vect w))
+        (+ (ycor-vect v) (ycor-vect w))))
+
+(define (xcor-vect vect)
+  (car vect))
+(define (ycor-vect vect)
+  (cdr vect))
+
+(define (scale-vect scalar v)
+  (cons (* scalar (xcor-vect v))
+        (* scalar (ycor-vect v))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Linear combination where all arguments are number
@@ -500,9 +513,9 @@ one-through-four
 ; Selectors
 (define (origin-frame frame)
   (list-ref frame 0))
-(define (edge1-frame)
+(define (edge1-frame frame)
   (list-ref frame 1))
-(define (edge2-frame)
+(define (edge2-frame frame)
   (list-ref frame 2))
 
 ; Frame coordinate map

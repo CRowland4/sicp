@@ -661,6 +661,39 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 (scale-vect 3 test-vect)
 
 
+; Exercise 2.47
+; First constructor
+(define (make-frame1 origin edge1 edge2)
+  (list origin edge1 edge2))
+; First selector set
+(define (origin-frame1 frame)
+  (list-ref frame 0))
+(define (edge1-frame1 frame)
+  (list-ref frame 1))
+(define (edge2-frame1 frame)
+  (list-ref frame 2))
+
+; Second constructor
+(define (make-frame2 origin edge1 edge2)
+  (cons origin (cons edge1 edge2)))
+; Second selector set
+(define (origin-frame2 frame)
+  (car frame))
+(define (edge1-frame2 frame)
+  (car (cdr frame)))
+(define (edge2-frame2 frame)
+  (cdr (cdr frame)))
+
+(define test-frame1 (make-frame1 "origin" "edge1" "edge2"))
+(origin-frame1 test-frame1)
+(edge1-frame1 test-frame1)
+(edge2-frame1 test-frame1)
+(define test-frame2 (make-frame2 "origin" "edge1" "edge2"))
+(origin-frame2 test-frame2)
+(edge1-frame2 test-frame2)
+(edge2-frame2 test-frame2)
+
+
 
 
                      
