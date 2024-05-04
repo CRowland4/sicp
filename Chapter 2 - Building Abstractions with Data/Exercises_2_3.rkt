@@ -24,3 +24,10 @@
 
 
 
+; Exercise 2.55
+(car ''abracadabra)
+#|
+The innter >'abracadabra< is the same as (quote abracadabra).
+Then you have '(quote abracadabra), which is a list of symbols, the first of which is 'quote,
+   and (car <a list of symbols starting with 'quote>) is going to return 'quote, which is displayed as > quote.
+|#
