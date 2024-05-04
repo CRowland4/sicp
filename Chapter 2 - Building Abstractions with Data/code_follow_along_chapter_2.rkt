@@ -616,5 +616,53 @@ one-through-four
         (paint-right frame)))))
 
 
+; Normal example of language expression via a factorial procedure
+(define (fact n)
+  (if (= n 1) 1 (* n (fact (- n 1)))))
+(fact 5)
+
+
+
+; Examples of the single quote
+(define a 1)
+
+(define b 2)
+
+(list a b) ; > (1 2)
+
+(list 'a 'b) ; > (a b)
+
+(list 'a b) ; (a 2)
+
+(list 'car (list 'quote '(a b c))) ; (car '(a b c))
+
+(car '(a b c)) ; a
+
+(cdr '(a b c)) ; (b c)
+
+
+
+; Implementation of memq primitive
+(define (memq item x)
+  (cond ((null? x) false)
+        ((eq? item (car x)) x)
+        (else (memq item (cdr x)))))
+
+(memq 'apple '(pear banana prune))
+(memq 'apple '( x (apple sauce) y apple pear))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 

@@ -648,6 +648,8 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 
 
 
+; Exercises 2.44 to 2.52 are all about the procedurel painter language. I don't have a way to run these procedures and actually see the results,
+;     so the accuracy of the solutions is potentially lower than other sections of exercises.
 ; Exercise 2.44
 (define (up-split painter n)
   (if (= n 0)
