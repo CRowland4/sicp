@@ -440,7 +440,7 @@ one-through-four
 
 
 ; The picture language - this is all theoretical and won't actually produce pictures in DrRacket, but I'm writing them out for better understanding
-(define painter (lambda (x) x))
+(define painter (lambda (frame) frame)) ; A painter takes a frame and draws it's picture (implemented in <segments->painter> below) inside that frame
 (define wave (painter "a waving guy"))
 (define (beside painter1 painter2)  ; Painter that draws <painter1> on the left and <painter2> on the right
   painter)
@@ -525,5 +525,19 @@ one-through-four
      (origin-frame frame)
      (add-vect (scale-vect (xcor-vect v) (edge1-frame frame))
                (scale-vect (ycor-vect v) (edge2-frame frame))))))
+
+
+
+; Creating a painter from line drawings, with an assumed procedure draw-line.
+(define (segments->painter segment-list)  ; Returns a painter, that takes a frame as its single argument
+  (lambda (frame)
+    (for-each
+     (lambda (segment)
+       (draw-line
+        ((frame-coord-map frame)
+         (start-segment segment))
+        ((frame-coord-map frame)
+         (end-segment segment))))
+     segment-list)))
   
 

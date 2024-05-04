@@ -695,11 +695,13 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 
 
 
+; Exercise 2.48
+; Segment constructor
+(define (make-segment v-origin-to-start v-origin-to-end)
+  (cons v-origin-to-start v-origin-to-end))
 
-                     
-                   
-                   
-               
-  
-  
-
+; Segment selectors
+(define (start-segment segment)
+  (car segment))
+(define (end-segment segment)
+  (cdr segment))
