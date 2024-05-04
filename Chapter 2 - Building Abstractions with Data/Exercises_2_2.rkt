@@ -63,6 +63,15 @@
 
 (define frame (list "origin" "edge1" "edge2"))
 
+(define (rotate90 painter)
+  (transform-painter painter
+                     (make-vect 1.0 0.0)
+                     (make-vect 1.0 1.0)
+                     (make-vect 0.0 0.0)))
+
+(define (make-frame origin-vector edge-vector1 edge-vector2)
+  (list frame origin-vector edge-vector1 edge-vector2))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.17
@@ -731,9 +740,6 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
         ((frame-coord-map frame)
          (end-segment segment))))
      segment-list)))
-; Frame constructor
-(define (make-frame origin-vector edge-vector1 edge-vector2)
-  (list frame origin-vector edge-vector1 edge-vector2))
 ; Frame selectors
 (define (origin-frame frame)
   (list-ref frame 0))
@@ -788,48 +794,83 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 ; That would follow the same pattern as the three above, but just with a lot more line segments.
 ; There's a sketch of one potential way to divide the line segments up in LiquidText. That sketch would take 19
 ;     segments, and of course the more segments are added the more accurate the representation will be.
-                                           
 
 
-                        
-                        
-       
-                    
+
+; Exercise 2.50
+(define (flip-horiz painter)
+  (transform-painter painter
+                     (make-vector 1.0 0.0)
+                     (make-vector 0.0 0.0)
+                     (make-vector 1.0 1.0)))
+
+(define (rotate180 painter)
+  (transform-painter painter
+                     (make-vector 1.0 1.0)
+                     (make-vector 0.0 1.0)
+                     (make-vector 1.0 0.0)))
+
+(define (rotate270 painter)
+  (transform-painter painter
+                     (make-vector 0.0 1.0)
+                     (make-vector 0.0 0.0)
+                     (make-vector 1.0 1.0)))
 
 
-#|
-Vector
-(define (make-vect x y)
-  (cons x y))
-(define (xcor-vect vect)
-  (car vect))
-(define (ycor-vect vect)
-  (cdr vect))
-(define (add-vect v w)
-  (cons (+ (xcor-vect v) (xcor-vect w))
-        (+ (ycor-vect v) (ycor-vect w))))
-(define (sub-vect v w)
-  (cons (- (xcor-vect v) (xcor-vect w))
-        (- (ycor-vect v) (ycor-vect w))))
-(define (scale-vect scalar v)
-  (cons (* scalar (xcor-vect v))
-        (* scalar (ycor-vect v))))
 
-; Segment
-(define (make-segment v-origin-to-start v-origin-to-end)
-  (cons v-origin-to-start v-origin-to-end))
-(define (start-segment segment)
-  (car segment))
-(define (end-segment segment)
-  (cdr segment))
+; Exercise 2.51
+(define (beside-transform painter1 painter2)
+  (let ((split-point (make-vect 0.5 0.0)))
+    (let ((paint-left
+           (transform-painter
+            painter1
+            (make-vect 0.0 0.0)
+            split-point
+            (make-vect 0.0 1.0)))
+          (paint-right
+           (transform-painter
+            painter2
+            split-point
+            (make-vect 1.0 0.0)
+            (make-vect 0.5 1.0))))
+      (lambda (frame)
+        (paint-left frame)
+        (paint-right frame)))))
+(define (transform-painter painter origin corner1 corner2)
+  (lambda (frame)
+    (let ((m (frame-coord-map frame)))
+      (let ((new-origin (m origin)))
+        (painter (make-frame
+                  new-origin
+                  (sub-vect (m corner1) new-origin)
+                  (sub-vect (m corner2) new-origin)))))))
 
-Frame
-(define (make-frame1 origin edge1 edge2)
-  (list origin edge1 edge2))
-(define (origin-frame1 frame)
-  (list-ref frame 0))
-(define (edge1-frame1 frame)
-  (list-ref frame 1))
-(define (edge2-frame1 frame)
-  (list-ref frame 2))
-|#
+(define (below-transform painter1 painter2)
+  (let ((split-point (make-vect 0.0 0.5)))
+    (let ((paint-down
+           (transform-painter
+            painter1
+            (make-vect 0.0 0.0)
+            (make-vect 1.0 0.0)
+            split-point))
+          (paint-up
+           (transform-painter
+            painter2
+            split-point
+            (make-vect 1.0 0.5)
+            (make-vect 1.0 0.0))))
+      (lambda (frame)
+        (paint-down frame)
+        (paint-up frame)))))
+
+(define (below-transform-rotation painter1 painter2)
+  (rotate90 (beside-transform
+             (rotate270 painter1)
+             (rotate270 painter2))))
+
+
+
+  
+
+
+
