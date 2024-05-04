@@ -51,6 +51,18 @@
 (define (beside painter1 painter2)
   "Painter that draws <painter1> on the left and <painter2> on the right")
 
+(define (draw-line frame segment)
+  ("a procedure for drawing the given line segment in the give frame"))
+
+(define (frame-coord-map frame)
+  (lambda (v)
+    (add-vect
+     (origin-frame frame)
+     (add-vect (scale-vect (xcor-vect v) (edge1-frame frame))
+               (scale-vect (ycor-vect v) (edge2-frame frame))))))
+
+(define frame (list "origin" "edge1" "edge2"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.17
@@ -705,3 +717,119 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
   (car segment))
 (define (end-segment segment)
   (cdr segment))
+
+
+
+; Exercise 2.49
+(define (segments->painter segment-list)  ; Returns a painter that takes a frame as its single argument
+  (lambda (frame)
+    (for-each
+     (lambda (segment)
+       (draw-line
+        ((frame-coord-map frame)
+         (start-segment segment))
+        ((frame-coord-map frame)
+         (end-segment segment))))
+     segment-list)))
+; Frame constructor
+(define (make-frame origin-vector edge-vector1 edge-vector2)
+  (list frame origin-vector edge-vector1 edge-vector2))
+; Frame selectors
+(define (origin-frame frame)
+  (list-ref frame 0))
+(define (edge1-frame frame)
+  (list-ref frame 1))
+(define (edge2-frame frame)
+  (list-ref frame 2))
+
+; Painter that draws outline of frame
+(define (painter-frame-outline frame)
+  (let ((v-origin (origin-frame frame))
+        (v-edge1 (edge1-frame frame))
+        (v-edge2 (edge2-frame frame)))
+    (segments->painter (list (make-segment v-origin
+                                           (add-vect v-origin v-edge1))
+                             (make-segment (add-vect v-origin v-edge1)
+                                           (add-vect (add-vect v-origin v-edge1) v-edge2))
+                             (make-segment (add-vect (add-vect v-origin v-edge1) v-edge2)
+                                           (add-vect (v-origin v-edge2)))
+                             (make-segment v-origin
+                                           (add-vect v-origin v-edge2))))))
+
+; Painter that draws an X by connecting opposite corners of the frame
+(define (painter-frame-X frame)
+  (let ((v-origin (origin-frame frame))
+        (v-edge1 (edge1-frame frame))
+        (v-edge2 (edge2-frame frame)))
+    (segments->painter (list (make-segment v-origin
+                                           (add-vect v-origin (add-vect v-edge1 v-edge2)))
+                             (make-segment (add-vect v-origin v-edge2)
+                                           (add-vect v-origin v-edge1))))))
+
+; Painter that draws a diamond, by connecting midpoints of the sides
+(define (painter-frame-diamond frame)
+  (let ((v-origin (origin-frame frame))
+        (v-edge1 (edge1-frame frame))
+        (v-edge2 (edge2-frame frame)))
+    (segments->painter (list (make-segment (add-vect v-origin (scale-vect 0.5 v-edge2))
+                                           (add-vect (add-vect v-origin v-edge2)
+                                                     (scale-vect 0.5 v-edge1)))
+                             (make-segment (add-vect (add-vect v-origin v-edge2)
+                                                     (scale-vect 0.5 v-edge1))
+                                           (add-vect (add-vect v-origin v-edge1)
+                                                     (scale-vect 0.5 v-edge2)))
+                             (make-segment (add-vect (add-vect v-origin v-edge1)
+                                                     (scale-vect 0.5 v-edge2))
+                                           (add-vect v-origin (scale-vect 0.5 v-edge1)))
+                             (make-segment (add-vect v-origin (scale-vect 0.5 v-edge1))
+                                           (add-vect v-origin (scale-vect 0.5 v-edge2)))))))
+
+; Part d is to create the wave painter.
+; That would follow the same pattern as the three above, but just with a lot more line segments.
+; There's a sketch of one potential way to divide the line segments up in LiquidText. That sketch would take 19
+;     segments, and of course the more segments are added the more accurate the representation will be.
+                                           
+
+
+                        
+                        
+       
+                    
+
+
+#|
+Vector
+(define (make-vect x y)
+  (cons x y))
+(define (xcor-vect vect)
+  (car vect))
+(define (ycor-vect vect)
+  (cdr vect))
+(define (add-vect v w)
+  (cons (+ (xcor-vect v) (xcor-vect w))
+        (+ (ycor-vect v) (ycor-vect w))))
+(define (sub-vect v w)
+  (cons (- (xcor-vect v) (xcor-vect w))
+        (- (ycor-vect v) (ycor-vect w))))
+(define (scale-vect scalar v)
+  (cons (* scalar (xcor-vect v))
+        (* scalar (ycor-vect v))))
+
+; Segment
+(define (make-segment v-origin-to-start v-origin-to-end)
+  (cons v-origin-to-start v-origin-to-end))
+(define (start-segment segment)
+  (car segment))
+(define (end-segment segment)
+  (cdr segment))
+
+Frame
+(define (make-frame1 origin edge1 edge2)
+  (list origin edge1 edge2))
+(define (origin-frame1 frame)
+  (list-ref frame 0))
+(define (edge1-frame1 frame)
+  (list-ref frame 1))
+(define (edge2-frame1 frame)
+  (list-ref frame 2))
+|#
