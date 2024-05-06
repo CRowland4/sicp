@@ -4,46 +4,46 @@
   (if (= (length p) 3)
       (caddr p)
       (make-product (caddr p) (cadddr p))))
+
 (define (augend s)
   (if (= (length s) 3)
       (caddr s)
       (make-sum (caddr s) (cdddr s))))
+
 (define (multiplier p)
   (cadr p))
+
 (define (addend s)
   (cadr s))
+
 (define (variable? x)
   (symbol? x))
+
 (define (same-variable? v1 v2)
   (and (variable? v1) (variable? v2) (eq? v1 v2)))
+
 (define (make-product m1 m2)
   (cond ((or (=number? m1 0) (=number? m2 0)) 0)  ; One of the factors is 0
         ((=number? m1 1) m2)  ; One of the factors is 1
         ((=number? m2 1) m1)  ; One of the factors is 1
         ((and (number? m1) (number? m2)) (* m1 m2))  ; Both of the factors are numbers that aren't 0 or 1
         (else (list '* m1 m2))))
+
 (define (make-sum a1 a2)
   (cond ((=number? a1 0) a2)  ; One of the items is 0
         ((=number? a2 0) a1)  ; One of the items is 0
         ((and (number? a1) (number? a2))  ; Both items are numbers
          (+ a1 a2))
         (else (list '+ a1 a2))))
+
 (define (=number? expr num)
   (and (number? expr) (= expr num)))
+
 (define (sum? x)
   (and (pair? x) (eq? (car x) '+)))
+
 (define (product? x)
   (and (pair? x) (eq? (car x) '*)))
-(define (accumulate op initial sequence)
-  (if (null? sequence)
-      initial
-      (op (car sequence)
-          (accumulate op initial (cdr sequence)))))
-(define (non-numbers default items)
-  (let ((accumulation (accumulate cons '() (filter (lambda (x) (not (number? x))) items))))
-    (if (null? accumulation)
-        default
-        accumulation)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -127,3 +127,59 @@ Then you have '(quote abracadabra), which is a list of symbols, the first of whi
       (make-sum (caddr s) (cdddr s))))
 
 
+
+; Exercise 2.58
+(define (deriv-infix expr var)
+  (cond ((number? expr) 0)
+        ((variable? expr) (if (same-variable? expr var) 1 0))
+        ((sum?-infix expr) (make-sum-infix (deriv-infix (addend-infix expr) var)
+                               (deriv-infix (augend-infix expr) var)))
+        ((and (exponentiation? expr) (number? (exponent expr)))
+         (make-product-infix (exponent expr)
+                       (make-product-infix (make-exponentiation (base expr) (- (exponent expr) 1))
+                                     (deriv-infix (base expr) var))))
+        ((product?-infix expr)
+         (make-sum-infix
+          (make-product-infix (multiplier-infix expr)
+                        (deriv-infix (multiplicand-infix expr) var))
+          (make-product-infix (deriv-infix (multiplier-infix expr) var)
+                        (multiplicand-infix expr))))
+        (else
+         (error "unknown expression type: DERIV" exp))))
+
+(define (multiplicand-infix p)
+  (caddr p))
+(define (augend-infix s)
+  (caddr s))
+(define (multiplier-infix p)
+  (car p))
+(define (addend-infix s)
+  (car s))
+(define (make-product-infix m1 m2)
+  (cond ((or (=number? m1 0) (=number? m2 0)) 0)  ; One of the factors is 0
+        ((=number? m1 1) m2)  ; One of the factors is 1
+        ((=number? m2 1) m1)  ; One of the factors is 1
+        ((and (number? m1) (number? m2)) (* m1 m2))  ; Both of the factors are numbers that aren't 0 or 1
+        (else (list m1 '* m2))))
+(define (make-sum-infix a1 a2)
+  (cond ((=number? a1 0) a2)  ; One of the items is 0
+        ((=number? a2 0) a1)  ; One of the items is 0
+        ((and (number? a1) (number? a2))  ; Both items are numbers
+         (+ a1 a2))
+        (else (list a1 '+ a2))))
+(define (sum?-infix x)
+  (and (pair? x) (eq? (cadr x) '+)))
+(define (product?-infix x)
+  (and (pair? x) (eq? (cadr x) '*)))
+(define (exponentiation?-infix expr)
+  (and (pair? expr) (eq? (cadr expr) '**)))
+(define (exponent-infix expr)
+  (caddr expr))
+(define (base-infix expr)
+  (car expr))
+(define (make-exponentiation-infix base expn)
+  (cond ((and (number? base) (number? expn))
+         (expt base expn))
+        ((=number? expn 1) base)
+        ((=number? expn 0) 1)
+        (else (list base '** expn))))
