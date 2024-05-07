@@ -811,9 +811,27 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
                                            (add-vect v-origin (scale-vect 0.5 v-edge2)))))))
 
 ; Part d is to create the wave painter.
-; That would follow the same pattern as the three above, but just with a lot more line segments.
-; There's a sketch of one potential way to divide the line segments up in LiquidText. That sketch would take 19
-;     segments, and of course the more segments are added the more accurate the representation will be.
+(define (wave-painter frame)
+  (segments->painter (list (make-segment ((make-vect 0 .75) (make-vect .2 .6)))
+                           (make-segment ((make-vect .2 .6) (make-vect .3 .65)))
+                           (make-segment ((make-vect .3 .65) (make-vect .4 .65)))
+                           (make-segment ((make-vect .4 .65) (make-vect .4 .75)))
+                           (make-segment ((make-vect .4 .75) (make-vect .3 .8)))
+                           (make-segment ((make-vect .3 .8) (make-vect .4 .1)))
+                           (make-segment ((make-vect .6 .1) (make-vect .7 .8)))
+                           (make-segment ((make-vect .7 .8) (make-vect .6 .75)))
+                           (make-segment ((make-vect .6 .75) (make-vect .6 .65)))
+                           (make-segment ((make-vect .6 .65) (make-vect .7 .65)))
+                           (make-segment ((make-vect .7 .65) (make-vect 1 .3)))
+                           (make-segment ((make-vect 1 .2) (make-vect .7 .5)))
+                           (make-segment ((make-vect .7 .5) (make-vect .65 .5)))
+                           (make-segment ((make-vect .65 .5) (make-vect .75 0)))
+                           (make-segment ((make-vect .6 0) (make-vect .5 .25)))
+                           (make-segment ((make-vect .5 .25) (make-vect .4 0)))
+                           (make-segment ((make-vect .25 0) (make-vect .35 .5)))
+                           (make-segment ((make-vect .35 .5) (make-vect .3 .6)))
+                           (make-segment ((make-vect .3 .6) (make-vect .2 .4)))
+                           (make-segment ((make-vect .2 .4) (make-vect 0 .65))))))
 
 
 
@@ -891,7 +909,31 @@ NOTE 2: After digging into the "product of consecutive factorials idea" a litle 
 
 
 ; Exercise 2.52
-; Adding a smile to wave would simply require adding more line segments (probably 5 or so, for a decent smile) to the 19 segments described in Exercise 2.49d
+; Changed wave-painter by adding a smile of three line segments
+(define (wave-painter-change frame)
+  (segments->painter (list (make-segment ((make-vect 0 .75) (make-vect .2 .6)))
+                           (make-segment ((make-vect .2 .6) (make-vect .3 .65)))
+                           (make-segment ((make-vect .3 .65) (make-vect .4 .65)))
+                           (make-segment ((make-vect .4 .65) (make-vect .4 .75)))
+                           (make-segment ((make-vect .4 .75) (make-vect .3 .8)))
+                           (make-segment ((make-vect .3 .8) (make-vect .4 .1)))
+                           (make-segment ((make-vect .6 .1) (make-vect .7 .8)))
+                           (make-segment ((make-vect .7 .8) (make-vect .6 .75)))
+                           (make-segment ((make-vect .6 .75) (make-vect .6 .65)))
+                           (make-segment ((make-vect .6 .65) (make-vect .7 .65)))
+                           (make-segment ((make-vect .7 .65) (make-vect 1 .3)))
+                           (make-segment ((make-vect 1 .2) (make-vect .7 .5)))
+                           (make-segment ((make-vect .7 .5) (make-vect .65 .5)))
+                           (make-segment ((make-vect .65 .5) (make-vect .75 0)))
+                           (make-segment ((make-vect .6 0) (make-vect .5 .25)))
+                           (make-segment ((make-vect .5 .25) (make-vect .4 0)))
+                           (make-segment ((make-vect .25 0) (make-vect .35 .5)))
+                           (make-segment ((make-vect .35 .5) (make-vect .3 .6)))
+                           (make-segment ((make-vect .3 .6) (make-vect .2 .4)))
+                           (make-segment ((make-vect .2 .4) (make-vect 0 .65)))
+                           (make-segment ((make-vect .4 .79) (make-vect .45 .76)))
+                           (make-segment ((make-vect .45 .76) (make-vect .55 .76)))
+                           (make-segment ((make-vect .55 .76) (make-vect .6 .79))))))
 
 ; Changed corner-split by adding a 90 degree rotation to the up-split part of the image
 (define (corner-split-change painter n)
