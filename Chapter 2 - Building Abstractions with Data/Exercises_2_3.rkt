@@ -45,6 +45,21 @@
 (define (product? x)
   (and (pair? x) (eq? (car x) '*)))
 
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (join joiner items)
+  (let ((result (cdr (accumulate
+                      (lambda (x y) (append (list joiner x) y))
+                      '()
+                      items))))
+    (if (= (length result) 1)
+        (car result)
+        result)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -146,7 +161,6 @@ Then you have '(quote abracadabra), which is a list of symbols, the first of whi
                         (multiplicand-infix expr))))
         (else
          (error "unknown expression type: DERIV" exp))))
-
 (define (multiplicand-infix p)
   (caddr p))
 (define (augend-infix s)
@@ -178,6 +192,95 @@ Then you have '(quote abracadabra), which is a list of symbols, the first of whi
 (define (base-infix expr)
   (car expr))
 (define (make-exponentiation-infix base expn)
+  (cond ((and (number? base) (number? expn))
+         (expt base expn))
+        ((=number? expn 1) base)
+        ((=number? expn 0) 1)
+        (else (list base '** expn))))
+
+
+
+; Exercise 2.59
+(define (deriv-pemdas expr var)
+  (cond ((number? expr) 0)
+        ((variable?-pemdas expr) (if (same-variable?-pemdas expr var) 1 0))
+        ((sum?-pemdas expr) (make-sum-pemdas (deriv-pemdas (addend-pemdas expr) var)
+                               (deriv-pemdas (augend-pemdas expr) var)))
+        ((and (exponentiation? expr) (number? (exponent expr)))
+         (make-product-pemdas (exponent expr)
+                       (make-product-pemdas (make-exponentiation (base expr) (- (exponent expr) 1))
+                                     (deriv-pemdas (base expr) var))))
+        ((product?-pemdas expr)
+         (make-sum-pemdas
+          (make-product-pemdas (multiplier-pemdas expr)
+                        (deriv-pemdas (multiplicand-pemdas expr) var))
+          (make-product-pemdas (deriv-pemdas (multiplier-pemdas expr) var)
+                        (multiplicand-pemdas expr))))
+        (else
+         (error "unknown expression type: DERIV" exp))))
+; Predicates
+(define (variable?-pemdas x)  ; No change
+  (symbol? x))
+(define (same-variable?-pemdas v1 v2)  ; No change
+  (and (variable?-pemdas v1) (variable? v2) (eq? v1 v2)))
+(define (=number?-pemdas expr num)  ; No change
+  (and (number? expr) (= expr num)))
+(define (sum?-pemdas expr)  ; Changed - now says whether or not the lowest precedent operator in the expression is +
+  (eq? (lowest-precedence-op expr) '+))
+(define (product?-pemdas expr)  ; Changed - now says whether or not the lowest precedent operator in the expression is *
+  (eq? (lowest-precedence-op expr) '*))
+(define (exponentiation?-pemdas expr)  ; Changed - now says whether or not the lowest precedent operator in the expression is **
+  (eq? (lowest-precedence-op expr) '**))
+
+; Selectors
+; New procedure lowest-precedent-op
+(define (lowest-precedence-op expr)
+  (cond ((not (eq? (memq '+ expr) false)) '+)
+        ((not (eq? (memq '* expr) false)) '*)
+        ((not (eq? (memq '** expr) false)) '**)
+        (else (false))))
+; New procedure memq-inverse
+(define (memq-inverse item expr)
+  (define (iter current-items current-expr)
+    (cond ((or (null? current-expr) (= (length current-expr) 1)) false)
+          ((eq? (cadr current-expr) item) (append current-items (list (car current-expr))))
+          (else (iter (append current-items (append (list (car current-expr) (cadr current-expr))))
+                      (cddr current-expr)))))
+  (iter '() expr))
+(define (multiplier-pemdas p)  ; Chnge multiplier to memq-inverse
+  (let ((result (memq-inverse '* p)))
+    (if (= (length result) 1)
+        (car result)
+        result)))
+(define (multiplicand-pemdas p)  ; Change multiplicand to memq
+  (let ((result (cdr (memq '* p))))
+    (if (= (length result) 1)
+        (car result)
+        result)))
+(define (augend-pemdas s)  ; Change augend to memq
+  (let ((result (cdr (memq '+ s))))
+    (if (= (length result) 1)
+        (car result)
+        result)))
+(define (addend-pemdas s)  ; Chnge addend to memq-inverse
+  (let ((result (memq-inverse '+ s)))
+    (if (= (length result) 1)
+        (car result)
+        result)))
+; Constructors - None of these get changed
+(define (make-product-pemdas m1 m2)
+  (cond ((or (=number? m1 0) (=number? m2 0)) 0)  ; One of the factors is 0
+        ((=number? m1 1) m2)  ; One of the factors is 1
+        ((=number? m2 1) m1)  ; One of the factors is 1
+        ((and (number? m1) (number? m2)) (* m1 m2))  ; Both of the factors are numbers that aren't 0 or 1
+        (else (list '* m1 m2))))
+(define (make-sum-pemdas a1 a2)
+  (cond ((=number? a1 0) a2)  ; One of the items is 0
+        ((=number? a2 0) a1)  ; One of the items is 0
+        ((and (number? a1) (number? a2))  ; Both items are numbers
+         (+ a1 a2))
+        (else (list '+ a1 a2))))
+(define (make-exponentiation-pemdas base expn)
   (cond ((and (number? base) (number? expn))
          (expt base expn))
         ((=number? expn 1) base)
