@@ -60,6 +60,11 @@
         (car result)
         result)))
 
+(define (element-of-set? x set)
+  (cond ((null? set) false)
+        ((equal? x (car set)) true)
+        (else (element-of-set? x (cdr set)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -74,17 +79,16 @@
 
 
 ; Exercise 2.54
-(define (equal? list1 list2)
+(define (equal?-lists list1 list2)
   (cond ((or (and (not (pair? list1)) (pair? list2))
              (and (not (pair? list2)) (pair? list1)))
-
          false)
         ((and (not (pair? list1)) (not (pair? list2)) (eq? list1 list2))
          true)
-        (else (and (equal? (car list1) (car list2))
-                   (equal? (cdr list1) (cdr list2))))))
-(equal? '(this is a list) '(this is a list)) ; #t
-(equal? '(this is a list) '(this (is a) list)) ; #f
+        (else (and (equal?-lists (car list1) (car list2))
+                   (equal?-lists (cdr list1) (cdr list2))))))
+(equal?-lists '(this is a list) '(this is a list)) ; #t
+(equal?-lists '(this is a list) '(this (is a) list)) ; #f
 
 
 
@@ -200,7 +204,7 @@ Then you have '(quote abracadabra), which is a list of symbols, the first of whi
 
 
 
-; Exercise 2.59
+; PEMDAS deriv procedure
 (define (deriv-pemdas expr var)
   (cond ((number? expr) 0)
         ((variable?-pemdas expr) (if (same-variable?-pemdas expr var) 1 0))
@@ -286,3 +290,57 @@ Then you have '(quote abracadabra), which is a list of symbols, the first of whi
         ((=number? expn 1) base)
         ((=number? expn 0) 1)
         (else (list base '** expn))))
+
+
+
+; Exercise 2.59
+(define (union-set set1 set2)
+  (cond ((null? set1) set2)
+        ((null? set2) set1)
+        ((element-of-set? (car set1) set2)
+         (union-set (cdr set1) set2))
+        (else (union-set (cdr set1) (cons (car set1) set2)))))
+
+
+
+; Exercise 2.60
+#|
+This is the same procedure - in each case, the first time the procedure sees the desired element, true is returned.
+However, the duplicates sets will take longer to return a false, because there are more elements to iterate through and discard.
+So overall, the non-duplicates context is better here.
+|#
+(define (element-of-set?-duplicates x set)
+  (cond ((null? set) false)
+        ((equal? x (car set)) true)
+        (else (element-of-set?-duplicates x (cdr set)))))
+
+#|
+With a set representation that allows for duplicates, adjoin is much faster because we don't have to first check
+   whether or not the element is already in the set.
+|#
+(define (adjoin-set-duplicates x set)
+      (cons x set))
+
+#|
+The union procedure is also better in the duplicates version, because again we don't have to check whether or not any
+   element is a member of any set - we just append one set to the other.
+|#
+(define (union-set-duplicates set1 set2)
+  (append set1 set2))
+
+#|
+The intersection procedure also isn't any better, and will actually take more time given that a duplicate element won't contribute
+   anything to the result set other than an extra call to element-of-set?.
+|#
+(define (intersection-set-duplicates set1 set2)
+  (cond ((or (null? set1) (null? set2)) '())
+        ((element-of-set?-duplicates (car set1) set2)
+         (cons (car set1) (intersection-set-duplicates (cdr set1) set2)))
+        (else (intersection-set-duplicates (cdr set1) set2))))
+
+#|
+If there's a circumstance where combining sets or adding elements to a set is the primary operation, this representation could be useful.
+But at some point that usefulness runs up agains memory usage. Also, presumably you'll eventually want to run membership tests, otherwise
+   why would you want a set to begin with? Overall, when it comes to sets, I'd prefer the non-duplicate representation. It also aligns more
+   easily with our intuition, which is important in maintenance terms.
+|#
