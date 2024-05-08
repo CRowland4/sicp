@@ -748,6 +748,28 @@ The sums are reduced, but we still need to reduce the products
 
 
 
+; Implementation of sets as ordered lists
+(define (element-of-set?-ordered x set)
+  (cond ((null? set) false)
+        ((= x (car set)) true)
+        ((< x (car set)) false)
+        (else (element-of-set? x (cdr set)))))
+
+(define (intersection-set-ordered set1 set2)
+  (if (or (null? set1) (null? set2))
+      '()
+      (let ((x1 (car set1)) (x2 (car set2)))
+        (cond ((= x1 x2)
+               (cons x1 (intersection-set-ordered (cdr set1) (cdr set2))))
+              ((< x1 x2)
+               (intersection-set-ordered (cdr set1) set2))
+              ((< x2 x2)
+               (intersection-set-ordered (set1 (cdr set2))))))))
+
+
+
+
+
 
 
 

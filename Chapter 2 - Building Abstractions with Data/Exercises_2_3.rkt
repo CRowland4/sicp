@@ -344,3 +344,13 @@ But at some point that usefulness runs up agains memory usage. Also, presumably 
    why would you want a set to begin with? Overall, when it comes to sets, I'd prefer the non-duplicate representation. It also aligns more
    easily with our intuition, which is important in maintenance terms.
 |#
+
+
+
+; Exercise 2.61
+; Here, we don't need to make any calls to element-of-set?, and the recursive calls will stop, on average, about halfway through the list.
+(define (adjoin-set-ordered x set)
+  (cond ((null? set) (list x))
+        ((= (car set) x) set)
+        ((< (car set) x) (cons (car set) (adjoin-set-ordered x (cdr set))))
+        ((> (car set) x) (cons x set))))
