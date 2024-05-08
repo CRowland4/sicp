@@ -421,3 +421,44 @@ But at some point that usefulness runs up agains memory usage. Also, presumably 
 
 ; The second of the two methods (the iterative one) grows more slowly, given the fact that it is both tail recursive,
 ;   and doesn't ever make any calls to append, instead using cons.
+
+
+
+; Exercise 2.64
+(define (list-> tree elements)
+  (car (partial-tree elements (length elements))))
+(define (partial-tree elts n)
+  (if (= n 0)
+      (cons '() elts)
+      (let ((left-size (quotient (- n 1) 2)))
+        (let ((left-result
+               (partial-tree elts left-size)))
+          (let ((left-tree (car left-result))
+                (non-left-elts (cdr left-result))
+                (right-size (- n (+ left-size 1))))
+            (let ((this-entry (car non-left-elts))
+                  (right-result
+                   (partial-tree
+                    (cdr non-left-elts)
+                    right-size)))
+              (let ((right-tree (car right-result))
+                    (remaining-elts
+                     (cdr right-result)))
+                (cons (make-tree this-entry
+                                 left-tree
+                                 right-tree)
+                      remaining-elts))))))))
+#|
+In the first let, we build the full left branch of the entry point of the main tree.
+The next let separates out that left tree from the elements that will go on the right branch of the main tree.
+Next, with a recursive call a tree is created from all but the first of the remaining elements from the step above.
+Then that right tree is separated from the elements that weren't part of the right tree.
+Then <this-entry>, which is the center of the original list (which is why it's the entry of the original list, so the resulting tree is balanced),
+   is passed as the entry point to a call to make-tree along with the left and right trees that were created previously.
+The cons of that tree to <remaining-elts> adds any left-over elements to the right-most side of the full tree
+
+Drawing of tree in LiquidText.
+
+The order of growth is O(n), since we're splitting the list down by half until we're left with calls addressing
+   the individual elements of the original list, which is made up of n elements.
+|#
