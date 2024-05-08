@@ -77,6 +77,17 @@
 (define (make-tree entry left right)
   (list entry left right))
 
+(define (intersection-set-ordered set1 set2)
+  (if (or (null? set1) (null? set2))
+      '()
+      (let ((x1 (car set1)) (x2 (car set2)))
+        (cond ((= x1 x2)
+               (cons x1 (intersection-set-ordered (cdr set1) (cdr set2))))
+              ((< x1 x2)
+               (intersection-set-ordered (cdr set1) set2))
+              ((< x2 x2)
+               (intersection-set-ordered (set1 (cdr set2))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -425,7 +436,7 @@ But at some point that usefulness runs up agains memory usage. Also, presumably 
 
 
 ; Exercise 2.64
-(define (list-> tree elements)
+(define (list->tree elements)
   (car (partial-tree elements (length elements))))
 (define (partial-tree elts n)
   (if (= n 0)
@@ -462,3 +473,47 @@ Drawing of tree in LiquidText.
 The order of growth is O(n), since we're splitting the list down by half until we're left with calls addressing
    the individual elements of the original list, which is made up of n elements.
 |#
+
+
+
+; Exercise 2.65
+(define (union-set-binary-tree set1 set2)
+  (let ((list1 (tree->list-2 set1))
+        (list2 (tree->list-2 set2)))
+    (let ((full-list (union-set-ordered list1 list2)))
+      (list->tree full-list))))
+
+(define (intersection-set-binary-tree set1 set2)
+  (let ((list1 (tree->list-2 set1))
+        (list2 (tree->list-2 set2)))
+    (let ((full-list (intersection-set-ordered list1 list2)))
+      (list->tree full-list))))
+
+
+
+; Exercise 2.66
+(define (make-record-node data-key data)
+  (list data-key data '() '()))
+(define (key record-node)
+  (car record-node))
+(define (get-data record-tree)
+  (cadr record-tree))
+(define (left-data-branch record-tree)
+  (caddr record-tree))
+(define (right-data-branch record-tree)
+  (cadddr record-tree))
+
+(define (lookup-tree-records given-key records-tree)
+  (let ((this-key (key records-tree)))
+    (cond ((null? records-tree) false)
+        ((= this-key given-key)
+         (get-data records-tree))
+        ((< this-key given-key)
+         (lookup-tree-records given-key (left-data-branch records-tree)))
+        ((> this-key given-key)
+         (lookup-tree-records given-key (right-data-branch records-tree))))))
+    
+  
+
+        
+         

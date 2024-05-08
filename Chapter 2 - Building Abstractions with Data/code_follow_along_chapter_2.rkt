@@ -68,6 +68,9 @@
 (define (make-vect x y)
   (cons x y))
 
+(define (key record-node)
+  (car record-node))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Linear combination where all arguments are number
@@ -800,3 +803,12 @@ The sums are reduced, but we still need to reduce the products
          (make-tree (entry set)
                     (left-branch set)
                     (adjoin-set-binary-tree x (right-branch set))))))
+
+
+
+; Database lookup for a set of records implemented as an unordered list
+(define (lookup given-key set-of-records)
+  (cond ((null? set-of-records) false)
+        ((equal? given-key (key (car set-of-records)))
+         (car set-of-records))
+        (else (lookup given-key (cdr set-of-records)))))
