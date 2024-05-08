@@ -65,6 +65,18 @@
         ((equal? x (car set)) true)
         (else (element-of-set? x (cdr set)))))
 
+(define (entry tree)
+  (car tree))
+
+(define (left-branch tree)
+  (cadr tree))
+
+(define (right-branch tree)
+  (caddr tree))
+
+(define (make-tree entry left right)
+  (list entry left right))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -367,3 +379,45 @@ But at some point that usefulness runs up agains memory usage. Also, presumably 
          (cons (car set1) (union-set-ordered (cdr set1) set2)))
         ((> (car set1) (car set2))
          (cons (car set2) (union-set-ordered set1 (cdr set2))))))
+
+
+
+; Exercise 2.63
+(define (tree->list-1 tree)
+  (if (null? tree)
+      '()
+      (append (tree->list-1 (left-branch tree))
+              (cons (entry tree)
+                    (tree->list-1
+                     (right-branch tree))))))
+(define (tree->list-2 tree)
+  (define (copy-to-list tree result-list)
+    (if (null? tree)
+        result-list
+        (copy-to-list (left-branch tree)
+                      (cons (entry tree)
+                            (copy-to-list
+                             (right-branch tree)
+                             result-list)))))
+  (copy-to-list tree '()))
+; At first glance it looks like they're just the recursive and iterative versions, respectively,
+;   of the same list and should always return the same result.
+(define tree1 (make-tree 7
+                         (make-tree 3 (make-tree 1 '() '()) (make-tree 5 '() '()))
+                         (make-tree 9 '() (make-tree 11 '() '()))))
+(define tree2 (make-tree 3 (make-tree 1 '() '())
+                          (make-tree 7 (make-tree 5 '() '())
+                                     (make-tree 9 '() (make-tree 11 '() '())))))
+(define tree3 (make-tree 5
+                         (make-tree 3 (make-tree 1 '() '()) '())
+                         (make-tree 9 (make-tree 7 '() '()) (make-tree 11 '() '()))))
+(tree->list-1 tree1)
+(tree->list-2 tree1)
+(tree->list-1 tree2)
+(tree->list-2 tree2)
+(tree->list-1 tree3)
+(tree->list-2 tree3)
+; First thought was right, these all give the same results
+
+; The second of the two methods (the iterative one) grows more slowly, given the fact that it is both tail recursive,
+;   and doesn't ever make any calls to append, instead using cons.
