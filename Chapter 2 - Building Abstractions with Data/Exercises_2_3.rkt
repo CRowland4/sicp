@@ -138,6 +138,26 @@
       (list (symbol-leaf tree))
       (caddr tree)))
 
+(define (make-leaf-set pairs)  ; Pairs is a list of (symbol, weight) pairs
+  (if (null? pairs)
+      '()
+      (let ((pair (car pairs)))
+        (adjoin-set-huffman (make-leaf (car pair)  ; symbol
+                               (cadr pair))  ; frequency
+                    (make-leaf-set (cdr pairs))))))
+
+(define (adjoin-set-huffman x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set)))
+         (cons x set))
+        (else (cons (car set)
+                    (adjoin-set-huffman x (cdr set))))))
+
+(define (reverse items)
+  (if (null? items)
+      items
+      (append (reverse (cdr items)) (list (car items)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -578,3 +598,44 @@ The order of growth is O(n), since we're splitting the list down by half until w
 ; Tree drawn in LiquidText
 ; Message (before running) - (A C A B B D A)
 (decode sample-message sample-tree)  ; (A D A B B C A) - I swapped D and C in my drawing (it's corrected now)
+
+
+
+; Exercise 2.68
+(define (encode message tree)
+  (if (null? message)
+      '()
+      (append (encode-symbol (car message) tree)
+              (encode (cdr message) tree))))
+
+(define (encode-symbol symbol tree)
+  (define (huffman-iter current-tree encoding)
+    (cond ((and (leaf? current-tree) (eq? (symbol-leaf current-tree) symbol))
+           encoding)
+          ((leaf? current-tree) false)
+          ((eq? (memq symbol (symbols current-tree)) false)
+           false)
+          (else
+           (let ((left (huffman-iter (left-branch-huffman current-tree) (append encoding (list 0)))))
+             (if (not (eq? left false))
+                 left
+                 (let ((right (huffman-iter (right-branch-huffman current-tree) (append encoding (list 1)))))
+                   (if (not (eq? right false))
+                       right
+                       (error "Symbol not found in tree"))))))))
+  (huffman-iter tree '()))
+(encode '(A D A B B C A) sample-tree)  ; (0 1 1 0 0 1 0 1 0 1 1 1 0)
+
+
+
+; Exercise 2.69
+(define (successive-merge leaf-set)
+  (define (merger leaf-set)
+    (let ((num-items (length leaf-set)))
+    (if (= num-items 1)
+      (car leaf-set)
+      (make-code-tree (car leaf-set) (successive-merge (cdr leaf-set))))))
+  (merger (reverse leaf-set)))
+(define (generate-huffman-tree pairs)
+  (successive-merge (make-leaf-set pairs)))
+(successive-merge (make-leaf-set (list (list 'A 4) (list 'B 2) (list 'C 1) (list 'D 1))))
