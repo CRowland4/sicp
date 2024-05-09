@@ -88,6 +88,56 @@
               ((< x2 x2)
                (intersection-set-ordered (set1 (cdr set2))))))))
 
+(define (decode bits tree)
+  (define (decode-1 bits current-branch)
+    (if (null? bits)
+        '()
+        (let ((next-branch
+               (choose-branch (car bits) current-branch)))
+          (if (leaf? next-branch)
+              (cons (symbol-leaf next-branch)
+                    (decode-1 (cdr bits) tree))
+              (decode-1 (cdr bits) next-branch)))))
+  (decode-1 bits tree))
+
+(define (choose-branch bit branch)
+  (cond ((= bit 0) (left-branch-huffman branch))
+        ((= bit 1) (right-branch-huffman branch))
+        (else (error "bad bit: CHOOSE-BRANCH" bit))))
+
+(define (left-branch-huffman tree)
+  (car tree))
+(define (right-branch-huffman tree)
+  (cadr tree))
+
+(define (leaf? object)
+  (eq? (car object) 'leaf))
+
+(define (symbol-leaf x)
+  (cadr x))
+
+(define (weight-leaf x)
+  (caddr x))
+
+(define (make-code-tree left right)
+  (list left
+        right
+        (append (symbols left) (symbols right))
+        (+ (weight left) (weight right))))
+
+(define (weight tree)
+  (if (leaf? tree)
+      (weight-leaf tree)
+      (cadddr tree)))
+
+(define (make-leaf symbol weight)
+  (list 'leaf symbol weight))
+
+(define (symbols tree)
+  (if (leaf? tree)
+      (list (symbol-leaf tree))
+      (caddr tree)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.53
@@ -512,8 +562,19 @@ The order of growth is O(n), since we're splitting the list down by half until w
          (lookup-tree-records given-key (left-data-branch records-tree)))
         ((> this-key given-key)
          (lookup-tree-records given-key (right-data-branch records-tree))))))
-    
-  
 
-        
-         
+
+
+; Exercise 2.67
+(define sample-tree
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree
+                   (make-leaf 'B 2)
+                   (make-code-tree (make-leaf 'D 1)
+                                   (make-leaf 'C 1)))))
+
+(define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+
+; Tree drawn in LiquidText
+; Message (before running) - (A C A B B D A)
+(decode sample-message sample-tree)  ; (A D A B B C A) - I swapped D and C in my drawing (it's corrected now)

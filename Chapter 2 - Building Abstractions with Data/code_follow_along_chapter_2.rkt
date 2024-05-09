@@ -738,7 +738,7 @@ The sums are reduced, but we still need to reduce the products
         ((equal? x (car set)) true)
         (else (element-of-set? x (cdr set)))))
 
-(define (adjoin-set x set)
+(define (adjoin-set-unordered x set)
   (if (element-of-set? x set)
       set
       (cons x set)))
@@ -775,10 +775,10 @@ The sums are reduced, but we still need to reduce the products
 (define (entry tree)
   (car tree))
 
-(define (left-branch tree)
+(define (left-branch-binary tree)
   (cadr tree))
 
-(define (right-branch tree)
+(define (right-branch-binary tree)
   (caddr tree))
 
 (define (make-tree entry left right)
@@ -788,21 +788,21 @@ The sums are reduced, but we still need to reduce the products
   (cond ((null? set) false)
         ((= x (entry set)) true)
         ((< x (entry set))
-         (element-of-set?-binary-tree x (left-branch set)))
+         (element-of-set?-binary-tree x (left-branch-binary set)))
         ((> x (entry set))
-         (element-of-set?-binary-tree x (right-branch set)))))
+         (element-of-set?-binary-tree x (right-branch-binary set)))))
 
 (define (adjoin-set-binary-tree x set)
   (cond ((null? set) (make-tree x '() '()))
         ((= x (entry set)) set)
         ((< x (entry set))
          (make-tree (entry set)
-                    (adjoin-set-binary-tree x (left-branch set))
+                    (adjoin-set-binary-tree x (left-branch-binary set))
                     (right-branch set)))
         ((> x (entry set))
          (make-tree (entry set)
-                    (left-branch set)
-                    (adjoin-set-binary-tree x (right-branch set))))))
+                    (left-branch-binary set)
+                    (adjoin-set-binary-tree x (right-branch-binary set))))))
 
 
 
@@ -812,3 +812,75 @@ The sums are reduced, but we still need to reduce the products
         ((equal? given-key (key (car set-of-records)))
          (car set-of-records))
         (else (lookup given-key (cdr set-of-records)))))
+
+
+
+; Huffman Encoding
+; Leaf constructor
+(define (make-leaf symbol weight)
+  (list 'leaf symbol weight))
+
+; Leaf predicate
+(define (leaf? object)
+  (eq? (car object) 'leaf))
+
+; Leaf selectors
+(define (symbol-leaf x)
+  (cadr x))
+(define (weight-leaf x)
+  (caddr x))
+
+; Code tree constructor
+(define (make-code-tree left right)
+  (list left
+        right
+        (append (symbols left) (symbols right))
+        (+ (weight left) (weight right))))
+
+; Code tree selector
+(define (left-branch tree)
+  (car tree))
+(define (right-branch tree)
+  (cadr tree))
+(define (symbols tree)
+  (if (leaf? tree)
+      (list (symbol-leaf tree))
+      (caddr tree)))
+(define (weight tree)
+  (if (leaf? tree)
+      (weight-leaf tree)
+      (cadddr tree)))
+
+; Huffman decoding procedure
+(define (decode bits tree)
+  (define (decode-1 bits current-branch)
+    (if (null? bits)
+        '()
+        (let ((next-branch
+               (choose-branch (car bits) current-branch)))
+          (if (leaf? next-branch)
+              (cons (symbol-leaf next-branch)
+                    (decode-1 (cdr bits) tree))
+              (decode-1 (cdr bits) next-branch)))))
+  (decode-1 bits tree))
+(define (choose-branch bit branch)
+  (cond ((= bit 0) (left-branch branch))
+        ((= bit 1) (right-branch branch))
+        (else (error "bad bit: CHOOSE-BRANCH" bit))))
+
+; Adjoin sets, ordered by weight
+(define (adjoin-set x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set)))
+         (cons x set))
+        (else (cons (car set)
+                    (adjoin-set x (cdr set))))))
+
+; Constructs an initial ordered set of leaves to be merged according to the Huffman algorithm
+(define (make-leaf-set pairs)  ; Pairs is a list of (symbol, weight) pairs
+  (if (null? pairs)
+      '()
+      (let ((pair (car pairs)))
+        (adjoin-set (make-leaf (car pair)  ; symbol
+                               (cadr pair))  ; frequency
+                    (make-leaf-set (cdr pairs))))))
