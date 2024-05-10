@@ -637,7 +637,7 @@ The order of growth is O(n), since we're splitting the list down by half until w
                            (cddr leaf-set)))))
 (define (generate-huffman-tree pairs)
   (successive-merge (make-leaf-set pairs)))
-(generate-huffman-tree (list (list 'C 1) (list 'D 1) (list 'B 2) (list 'A 4)))
+(generate-huffman-tree (list (list 'C 1) (list 'D 1) (list 'B 2) (list 'A 4))) 
 
 
 
@@ -645,3 +645,28 @@ The order of growth is O(n), since we're splitting the list down by half until w
 (define song-tree (generate-huffman-tree (list (list 'NA 16) (list 'YIP 9) (list 'SHA 3) (list 'GET 2) (list 'A 2) (list 'JOB 2) (list 'WAH 1) (list 'BOOM 1))))
 (define message '(GET A JOB SHA NA NA NA NA NA NA NA NA GET A JOB SHA NA NA NA NA NA NA NA NA WAH YIP YIP YIP YIP YIP YIP YIP YIP YIP SHA BOOM))
 (encode message song-tree)
+(length (encode message song-tree))  ; 84 total bits
+; There are 8 total "words", so we would need at least 8 unique combinations of bits, which can be accomplished
+;   with a binary string of length three. Then we would need to add up the number of characters and multiply it by 3,
+;   which gives (1 + 1 + 2 + 2 + 2 + 3 + 16 + 9) * 3 = 108
+
+
+
+; Exercise 2.71
+; In general, only one bit is required to encode the most frequent symbol.
+; The least frequent symbol will require n - 1 bits.
+
+
+
+; Exercise 2.71
+#|
+For the specific case of exercise 2.70, for the least-frequent symbol, you have to make (n - 1) searches.
+Since the number of elements in the list your searching decreases by one each time, the search time averages out to (n - 1)/2 which is O(n) time.
+But these are just the searches - you have to do (n - 1) of them each time, so the total order of growth is O(n^2)
+For the most-frequent symbol, the order of growth is O(n), since you just have to search once befor eyou find the character.
+
+The most general case would need to take into account not only the number of symbols, but also the distribution of the frequencies of those symbols,
+  which would determine the shape of the tree, so I'm not going to spend time calculating that, but I will look it up and try to understand it.
+Assuming the tree is balanced with respect to the weights, the general case would be O(nlog(n)) - n foreach the searches that happen at log(n) branches.
+That's as far as I care to take this one.
+|#
