@@ -634,8 +634,18 @@ The order of growth is O(n), since we're splitting the list down by half until w
     (let ((num-items (length leaf-set)))
     (if (= num-items 1)
       (car leaf-set)
-      (make-code-tree (car leaf-set) (successive-merge (cdr leaf-set))))))
+      (make-code-tree (car leaf-set) (merger (cdr leaf-set))))))
   (merger (reverse leaf-set)))
 (define (generate-huffman-tree pairs)
   (successive-merge (make-leaf-set pairs)))
 (successive-merge (make-leaf-set (list (list 'A 4) (list 'B 2) (list 'C 1) (list 'D 1))))
+
+
+#|
+(define (adjoin-set-huffman x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set)))
+         (cons x set))
+        (else (cons (car set)
+                    (adjoin-set-huffman x (cdr set))))))
+|#
