@@ -630,22 +630,18 @@ The order of growth is O(n), since we're splitting the list down by half until w
 
 ; Exercise 2.69
 (define (successive-merge leaf-set)
-  (define (merger leaf-set)
-    (let ((num-items (length leaf-set)))
-    (if (= num-items 1)
+  (if (null? (cdr leaf-set))
       (car leaf-set)
-      (make-code-tree (car leaf-set) (merger (cdr leaf-set))))))
-  (merger (reverse leaf-set)))
+      (successive-merge
+       (adjoin-set-huffman (make-code-tree (car leaf-set) (cadr leaf-set))
+                           (cddr leaf-set)))))
 (define (generate-huffman-tree pairs)
   (successive-merge (make-leaf-set pairs)))
-(successive-merge (make-leaf-set (list (list 'A 4) (list 'B 2) (list 'C 1) (list 'D 1))))
+(generate-huffman-tree (list (list 'C 1) (list 'D 1) (list 'B 2) (list 'A 4)))
 
 
-#|
-(define (adjoin-set-huffman x set)
-  (cond ((null? set) (list x))
-        ((< (weight x) (weight (car set)))
-         (cons x set))
-        (else (cons (car set)
-                    (adjoin-set-huffman x (cdr set))))))
-|#
+
+; Exercise 2.70
+(define song-tree (generate-huffman-tree (list (list 'NA 16) (list 'YIP 9) (list 'SHA 3) (list 'GET 2) (list 'A 2) (list 'JOB 2) (list 'WAH 1) (list 'BOOM 1))))
+(define message '(GET A JOB SHA NA NA NA NA NA NA NA NA GET A JOB SHA NA NA NA NA NA NA NA NA WAH YIP YIP YIP YIP YIP YIP YIP YIP YIP SHA BOOM))
+(encode message song-tree)
