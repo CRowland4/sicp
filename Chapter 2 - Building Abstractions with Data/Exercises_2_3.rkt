@@ -1,5 +1,6 @@
 #lang scheme
 ; Everything between here and the row of semi-colons is defined so the exercises have access to them
+
 (define (multiplicand p)
   (if (= (length p) 3)
       (caddr p)

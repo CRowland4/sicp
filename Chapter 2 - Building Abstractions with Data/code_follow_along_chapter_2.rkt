@@ -71,6 +71,12 @@
 (define (key record-node)
   (car record-node))
 
+(define (put op type item)  ; Placeholder for put operation, discussed more in chapter 3
+  "foo")
+
+(define (get op type)  ; Placeholder for get operation, discussed more in chapter 3
+  ("bar"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Linear combination where all arguments are number
@@ -884,3 +890,258 @@ The sums are reduced, but we still need to reduce the products
         (adjoin-set (make-leaf (car pair)  ; symbol
                                (cadr pair))  ; frequency
                     (make-leaf-set (cdr pairs))))))
+
+
+
+; Operations on complex numbers
+
+(define (add-complex z1 z2)
+  (make-from-real-imag (+ (real-part z1) (real-part z2))
+                       (+ (imag-part z1) (imag-part z2))))
+
+(define (sub-complex z1 z2)
+  (make-from-real-imag (- (real-part z1) (real-part z2))
+                       (- (imag-part z1) (imag-part z2))))
+
+
+(define (mul-complex z1 z2)
+  (make-from-mag-ang (* (magnitude z1) (magnitude z2))
+                     (+ (angle z1) (angle z2))))
+
+(define (div-complex z1 z2)
+  (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
+                     (- (angle z1) (angle z2))))
+
+; Real/Imaginary parts
+(define (real-part-ri z)
+  (car z))
+
+(define (imag-part-ri z)
+  (cdr z))
+
+(define (magnitude-ri z)
+  (sqrt (+ (square (real-part-ri z))
+           (square (imag-part-ri z)))))
+
+(define (angle-ri z)
+  (atan (imag-part-ri z) (real-part-ri z)))
+
+(define (make-from-real-imag-ri x y)
+  (cons x y))
+
+(define (make-from-mag-ang-ri r a)
+  (cons (* r (cos a)) (* r (sin a))))
+
+; Magnitude/Angle parts
+(define (real-part-ma z)
+  (* (magnitude-ma z) (cos (angle-ma z))))
+
+(define (imag-part-ma z)
+  (* (magnitude-ma z) (sin (angle-ma z))))
+
+(define (magnitude-ma z)
+  (car z))
+
+(define (angle-ma z)
+  (cdr z))
+
+(define (make-from-real-imag-ma x y)
+  (cons (sqrt (+ (square x) (square y)))
+        (atan y x)))
+
+(define (make-from-mag-ang-ma r a)
+  (cons r a))
+
+; Procedures to work with type-tags
+(define (attach-tag type-tag contents)
+  (cons type-tag contents))
+
+(define (type-tag datum)
+  (if (pair? datum)
+      (car datum)
+      (error "Bad tagged datum: TYPE-TAG")))
+
+(define (contents datum)
+  (if (pair? datum)
+      (cdr datum)
+      (error "Bad tagged datum: CONTENTS" datum)))
+
+; Identifying which coordinates are being used
+(define (rectangular? z)
+  (eq? (type-tag z) 'rectangular))
+
+(define (polar? z)
+  (eq? (type-tag z) 'polar))
+
+; Revised rectangular implementation of complex numbers
+(define (real-part-rectangular z)
+  (car z))
+
+(define (imag-part-rectangular z)
+  (cdr z))
+
+(define (magnitude-rectangular z)
+  (sqrt (+ (square (real-part-rectangular z))
+           (square (imag-part-rectangular z)))))
+
+(define (angle-rectangular z)
+  (atan (imag-part-rectangular z)
+        (real-part-rectangular z)))
+
+(define (make-from-real-imag-rectangular x y)
+  (attach-tag 'rectangular (cons x y)))
+
+(define (make-from-mag-ang-rectangular r a)
+  (attach-tag 'rectangular
+              (cons (* r (cos a)) (* r (sin a)))))
+
+; Revised polar implementation of complex numbers
+(define (real-part-polar z)
+  (* (magnitude-polar z) (cos (angle-polar z))))
+
+(define (imag-part-polar z)
+  (* (magnitude-polar z) (sin (angle-polar z))))
+
+(define (magnitude-polar z)
+  (car z))
+
+(define (angle-polar z)
+  (cdr z))
+
+(define (make-from-real-imag-polar x y)
+  (attach-tag 'polar
+              (cons (sqrt (+ (square x) (square y)))
+                    (atan y x))))
+
+(define (make-from-mag-ang-polar r a)
+  (attach-tag 'polar (cons r a)))
+
+; Generic selectors
+(define (real-part z)
+  (cond ((rectangular? z)
+         (real-part-rectangular (contents z)))
+        ((polar? z)
+         (real-part-polar (contents z)))
+        (else (error "Unknown type: REAL-PART" z))))
+
+(define (imag-part z)
+  (cond ((rectangular? z)
+         (imag-part-polar (contents z)))
+        ((polar? z)
+         (imag-part-polar (contents z)))
+        (else (error "Unknown type: IMAG-PART" z))))
+
+(define (magnitude z)
+  (cond ((rectangular? z)
+         (magnitude-rectangular (contents z)))
+        ((polar? z)
+         (magnitude-polar (contents z)))
+        (else (error "Unknown type: MAGNITUDE" z))))
+
+(define (angle z)
+  (cond ((rectangular? z)
+         (angle-rectangular (contents z)))
+        ((polar? z)
+         (angle-polar (contents z)))
+        (else (error "Unknown type: ANGLE" z))))
+
+; Constructors to go along with our new generic selectors
+(define (make-from-real-imag x y)
+  (make-from-real-imag-rectangular x y))
+
+(define (make-from-mag-ang r a)
+  (make-from-mag-ang-polar r a))
+
+
+
+; Implementing data-directed programming with a rectangular representation of complex numbers
+; Internal procedures
+(define (install-rectangular-package)
+  (define (real-part z)
+    (car z))
+  (define (imag-part z)
+    (cdr z))
+  (define (make-from-real-imag x y)
+    (cons x y))
+  (define (magnitude z)
+    (sqrt (+ (square (real-part z))
+             (square (imag-part z)))))
+  (define (angle z)
+    (atan (imag-part z) (imag-part z) (real-part z)))
+  (define (make-from-mag-ang r a)
+    (cons (* r (cos a)) (* r (sin a))))
+  ; Interface to the rest of the system
+  (define (tag x)
+    (attach-tag 'rectangular x))
+  (put 'real-part '(rectangular) real-part)
+  (put 'imag-part '(rectangular) imag-part)
+  (put 'magnitude '(rectangular) magnitude)
+  (put 'angle '(rectangular) angle)
+  (put 'make-from-real-imag 'rectangular
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'rectangular
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+; Implementing data-directed programming with a polar representation of complex numbers
+(define (install-polar-package)
+  ; Internal procedures
+  (define (magnitude z)
+    (car z))
+  (define (angle z)
+    (cdr z))
+  (define (make-from-mag-ang r a)
+    (cons r a))
+  (define (real-part z)
+    (* (magnitude z) (cos (angle z))))
+  (define (imag-part z)
+    (* (magnitude z) (sin (angle z))))
+  (define (make-from-real-imag x y)
+    (cons (sqrt (+ (square x) (square y)))
+          (atan y x)))
+  ; Interface to the rest of the system
+  (define (tag x)
+    (attach-tag 'polar x))
+  (put 'real-part '(polar) real-part)
+  (put 'imag-part '(polar) imag-part)
+  (put 'magnitude '(polar) magnitude)
+  (put 'angle '(polar) angle)
+  (put 'make-from-real-imag 'polar
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'polar
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+; Generic application of procedure
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (error
+           "No method for these types: APPLY-GENERIC"
+           (list op type-tags))))))
+
+; Defining generic selectors and constructors in terms of the apply-generic procedure
+; Selectors
+(define (real-part-generic z)
+  (apply-generic 'real-part z))
+
+(define (imag-part-generic z)
+  (apply-generic 'imag-part z))
+
+(define (magnitude-generic z)
+  (apply-generic 'magnitude z))
+
+(define (angle-generic z)
+  (apply-generic 'angle z))
+
+; Constructors
+(define (make-from-real-imag-generic x y)
+  ((get 'make-from-real-imag 'rectangular) x y))
+
+(define (make-from-mag-ang-generic r a)
+  ((get 'make-from-mag-ang-generic 'polar) r a))
+          
+    
+  
