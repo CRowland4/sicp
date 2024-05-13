@@ -140,7 +140,7 @@ a) In the data-directed rewrite, the operator is being stripped from the express
 
 
 
-; Exercise 2.74
+; Exercise 2.74 - sketch in LiquidText
 ; Our packages will be dividied up by division. Each division's files should be structured as a list of files,
 ;   with the first element being the employee name.
 (define (install-division<num>-package)
@@ -181,7 +181,20 @@ a) In the data-directed rewrite, the operator is being stripped from the express
 ; d) An item will have to be added to the beginning of the list that is the personnel file, indicating a number.
 ;     Then each employee file will need to have the name of the employee added as the first element in the record.
 ;     An installation package will also need to be created for the new division
-          
+
+
+
+; Exercise 2.75
+(define (make-from-mag-ang r a)
+  (define (dispatch op)
+    (cond ((eq? op 'real-part)
+           (* r (cos a)))
+          ((eq? op 'imag-part )
+           (* r (sin a)))
+          ((eq? op 'magnitude) r)
+          ((eq? op 'angle) a)
+          (else (error "Unknown op: MAKE-FROM-MAG-ANG" op))))
+  dispatch)
   
     
 

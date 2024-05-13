@@ -1142,6 +1142,22 @@ The sums are reduced, but we still need to reduce the products
 
 (define (make-from-mag-ang-generic r a)
   ((get 'make-from-mag-ang-generic 'polar) r a))
+
+
+
+; Message Passing programming with "smart data objects" instead of "smart operations"
+(define (make-from-real-imag-smart-data x y)
+  (define (dispatch op)
+    (cond ((eq? op 'real-part) x)
+          ((eq? op 'imag-part) y)
+          ((eq? op 'magnitude) (sqrt (+ (square x) (square y))))
+          ((eq? op 'angle) (atan y x))
+          (else (error "Unknown op: MAKE-FROM-REAL-IMAG" op))))
+  dispatch)
+
+; The corresponding apply-generic procedure for this "smart data objects" paradigm
+(define (apply-generic-smart-data op arg)
+  (arg op))
           
     
   
