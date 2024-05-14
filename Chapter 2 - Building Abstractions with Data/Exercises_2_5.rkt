@@ -1,6 +1,31 @@
 #lang scheme
 ; Everything between here and the row of semi-colons is defined so the exercises have access to them
 
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (error
+           "No method for these types: APPLY-GENERIC"
+           (list op type-tags))))))
+
+(define (put op type item)  ; Placeholder for put operation, discussed more in chapter 3
+  "foo")
+
+(define (get op type)  ; Placeholder for get operation, discussed more in chapter 3
+  ("bar"))
+
+(define (numer x) (car x))
+
+(define (denom x) (cdr x))
+
+(define (real-part-ri z)
+  (car z))
+
+(define (imag-part-ri z)
+  (cdr z))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.77
@@ -55,4 +80,28 @@ This is a recursive process - (magnitude ('complex 'rectangular 3 4)) ends up pa
   (if (number? contents)
       contents
       (cons type-tag contents)))
+
+
+
+; Exercise 2.79
+; These two procedures would be added to the scheme-number package (without the suffix after "equ?")
+(define (equ?-ordinary x y)
+  (= x y))
+(put 'equ? ('scheme-number 'scheme-number) equ?-ordinary)
+
+; These two procedures would be added to the rational-number package (without the suffix after "equ?")
+(define (equ?-rational x y)
+  (= (* (numer x) (denom y))
+     (* (numer y) (denom x))))
+(put 'equ? ('rational 'rational) equ?-rational)
+
+; These two procedures would be added to the complex-number package (without the suffix after "equ?")
+(define (equ?-complex z1 z2)
+  (and (= (real-part z1) (real-part z2))
+       (= (imag-part z1) (imag-part z2))))
+(put 'equ? ('complex 'complex) equ?-complex)
+
+; Full generic equ? procedure
+(define (equ? x y)
+  (apply-generic 'equ? x y))
 

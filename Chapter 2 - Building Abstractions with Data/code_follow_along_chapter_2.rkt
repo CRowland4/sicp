@@ -1161,7 +1161,7 @@ The sums are reduced, but we still need to reduce the products
 
 
 
-; Fuly generic arithmetic operations (for complex, rational, and ordinary)
+; Fully generic arithmetic operations (for complex, rational, and ordinary)
 (define (add x y)
   (apply-generic 'add x y))
 (define (sub x y)
