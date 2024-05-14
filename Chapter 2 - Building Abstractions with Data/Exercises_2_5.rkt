@@ -85,9 +85,9 @@ This is a recursive process - (magnitude ('complex 'rectangular 3 4)) ends up pa
 
 ; Exercise 2.79
 ; These two procedures would be added to the scheme-number package (without the suffix after "equ?")
-(define (equ?-ordinary x y)
+(define (equ?-scheme x y)
   (= x y))
-(put 'equ? ('scheme-number 'scheme-number) equ?-ordinary)
+(put 'equ? ('scheme-number 'scheme-number) equ?-scheme)
 
 ; These two procedures would be added to the rational-number package (without the suffix after "equ?")
 (define (equ?-rational x y)
@@ -104,4 +104,30 @@ This is a recursive process - (magnitude ('complex 'rectangular 3 4)) ends up pa
 ; Full generic equ? procedure
 (define (equ? x y)
   (apply-generic 'equ? x y))
+
+
+
+; Exercise 2.80
+; These two procedures would be added to the scheme-number package (without the suffix after "=zero?")
+(define (=zero?-scheme x)
+  (= x 0))
+(put '=zero? '(scheme-number) =zero?-scheme)
+
+; These two procedures would be added to the rational-number package (without the suffix after "=zero?")
+(define (=zero?-rational x)
+  (= (numer x) 0))
+(put '=zero? '(rational) =zero?-rational)
+
+; These two procedures would be added to the complex-number package (without the suffix after "=zero?")
+(define (=zero?-complex z)
+  (and (= (real-part z) 0)
+       (= (imag-part z) 0)))
+(put '=zero? '(complex) =zero?-complex)
+
+; Full generic =zero? procedure
+(define (=zero? x)
+  (apply-generic '=zero? x))
+
+
+
 
