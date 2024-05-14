@@ -6,9 +6,21 @@
     (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
-          (error
-           "No method for these types: APPLY-GENERIC"
-           (list op type-tags))))))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+                  (cond (t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else (error "No method for these types"
+                                     (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
 
 (define (put op type item)  ; Placeholder for put operation, discussed more in chapter 3
   "foo")
@@ -25,6 +37,15 @@
 
 (define (imag-part-ri z)
   (cdr z))
+
+(define (get-coercion type1 type2 item)  ; Placeholder for get-coercion operation, discussed more in chapter 3
+  ("baz"))
+
+(define (put-coercion type1 type2 item)  ; Placeholder for put-coercion operation, discussed more in chapter 3
+  ("bam?"))
+
+(define (tag x)  ; Defined here as a placeholder since the real <tag> procedures are internal to installation-packages
+  ("tags an object"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -127,6 +148,54 @@ This is a recursive process - (magnitude ('complex 'rectangular 3 4)) ends up pa
 ; Full generic =zero? procedure
 (define (=zero? x)
   (apply-generic '=zero? x))
+
+
+
+; Exercise 2.81
+; Suggested additions to the coercion table
+(define (scheme-number->scheme-number n) n)
+(define (complex->complex z) z)
+(put-coercion 'scheme-number
+              'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+
+; Example situation - we have this generic procedure
+(define (exp x y) (apply-generic 'exp x y))
+; and this is added to the Scheme-number package, and called with two complex numbers
+(put 'exp '(schem-number scheme-number)
+     (lambda (x y) (tag (expt x y))))
+#|
+a) This would cause an infinite recursive loop, where the first complex number is constantly being "converted" to a complex number,
+     and passed back to apply-generic.
+
+b) Yes, he is correct. If the object-type table doesn't contain a procedure for a pair of the particular type, an error will be thrown.
+|#
+
+; c)  
+(define (apply-generic-same-type-coercion op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags)))
+                (if (= type1 type2)
+                    (error "No method for these types"
+                           (list op type-tags))
+                    (let ((a1 (car args))
+                          (a2 (cadr args))
+                          (t1->t2 (get-coercion type1 type2))
+                          (t2->t1 (get-coercion type2 type1)))
+                      (cond (t1->t2
+                             (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1
+                             (apply-generic op a1 (t2->t1 a2)))
+                            (else (error "No method for these types"
+                                     (list op type-tags)))))))
+          (error "No method for these types" (list op type-tags)))))))
+
 
 
 

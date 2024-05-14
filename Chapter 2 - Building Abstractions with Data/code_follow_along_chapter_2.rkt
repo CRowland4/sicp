@@ -71,11 +71,20 @@
 (define (key record-node)
   (car record-node))
 
+(define (tag x)  ; Defined here as a placeholder since the real <tag> procedures are internal to installation-packages
+  ("tags an object"))
+
 (define (put op type item)  ; Placeholder for put operation, discussed more in chapter 3
   "foo")
 
 (define (get op type)  ; Placeholder for get operation, discussed more in chapter 3
   ("bar"))
+
+(define (put-coercion type1 type2 item)  ; Placeholder for put-coercion operation, discussed more in chapter 3
+  ("baz"))
+
+(define (get-coercion type1 type2)  ; Placeholder for get-coercion operation, discussed more in chapter 3
+  ("bam?"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1267,6 +1276,47 @@ The sums are reduced, but we still need to reduce the products
   ((get 'make-from-real-imag 'complex) x y))
 (define (make-complex-from-mag-ang r a)
   ((get 'make-from-mag-ang 'complex) r a))
+
+
+
+; A potential method for allowing the addition of complex numbers to scheme numbers, as a procedure in the complex package
+(define (add-complex-to-schemenum z x)
+  (make-from-real-imag (+ (real-part z) x) (imag-part z)))
+(put 'add '(complex scheme-number)
+     (lambda (z x) (tag (add-complex-to-schemenum z x))))
+
+
+
+; Coercion procedure, transforming an ordinary number into a complex number with an imaginary part of 0
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+
+; Installing coercion procedures in a special coercion table
+(put-coercion 'scheme-number 'complex scheme-number->complex)
+
+
+
+; Modification to the apply-generic procedure to add coercion
+(define (apply-generic-coercion op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+                  (cond (t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else (error "No method for these types"
+                                     (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
 
         
     
