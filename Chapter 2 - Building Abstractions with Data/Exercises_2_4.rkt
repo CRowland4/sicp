@@ -195,7 +195,35 @@ a) In the data-directed rewrite, the operator is being stripped from the express
           ((eq? op 'angle) a)
           (else (error "Unknown op: MAKE-FROM-MAG-ANG" op))))
   dispatch)
-  
+
+
+
+; Exercise 2.76
+#|
+Explicit Data Dispatch
+     In order to add a new type, there must be an addition made to all operations to account
+        for data of the appropriate type.
+     In order to add a new operation, you would simply write the operation with conditions to check each new type.
+
+Data-Directed
+     For a new type, you would have to write a new installation package containing definitions for all the existing operations
+        as they applied to that new type.
+     For a new operation, you would need to define that operation inside each installation package as it applied to that
+        package's type.
+
+Message Passing
+     For a new type, you would need to write a new procedure that returned a dispatch procedure for that specific type.
+     For a new operation, each type's dispatch operation will have to have a new check added for that operation.
+
+
+If new types were frequently being added to the system, I would opt for a data-directed system. This way,
+   constant changes to the existing operations are avoided, and you can immediately begin using the new type with the
+   existing generic procedures.
+
+If new operations were frequently being added, I would opt for explicit data dispatching, for the similar reason that there wouldn't
+   need to be lots of changes made to the existing system each time an operation was added.
+|#
+
     
 
 
