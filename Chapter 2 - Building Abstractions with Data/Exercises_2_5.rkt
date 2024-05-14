@@ -25,8 +25,8 @@
 (define (put op type item)  ; Placeholder for put operation, discussed more in chapter 3
   "foo")
 
-(define (get op type)  ; Placeholder for get operation, discussed more in chapter 3
-  ("bar"))
+(define (get op type item)  ; Placeholder for get operation, discussed more in chapter 3
+  "bar")
 
 (define (numer x) (car x))
 
@@ -38,7 +38,7 @@
 (define (imag-part-ri z)
   (cdr z))
 
-(define (get-coercion type1 type2 item)  ; Placeholder for get-coercion operation, discussed more in chapter 3
+(define (get-coercion type1 type2)  ; Placeholder for get-coercion operation, discussed more in chapter 3
   ("baz"))
 
 (define (put-coercion type1 type2 item)  ; Placeholder for put-coercion operation, discussed more in chapter 3
@@ -198,5 +198,66 @@ b) Yes, he is correct. If the object-type table doesn't contain a procedure for 
 
 
 
+; Exercise 2.82
+(define (apply-generic-generalized op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (let ((possible-conversions (map
+                                       (lambda (x) (get-coercion-list x type-tags (list (lambda (x) x))))
+                                       type-tags)))  ; This will return a list of conversion procedure lists
+            (let ((possible-args (arg-possibilites args possible-conversions)))  ; This retrns a list of lists, where each list is potential objects for that arg
+              (let ((procedure-and-args (proc-finder op possible-args '())))
+                (if (not (null? procedure-and-args))
+                    (let ((solution-proc (car procedure-and-args))
+                          (solution-args (cadr procedure-and-args)))
+                      (apply solution-proc (map contents solution-args)))
+                    (error "No method for these types" (list op type-tags))))))))))
+
+; Takes a type and a list of types  (possible-to-types) and returns a list of the conversions that can be used on <type>
+(define (get-coercion-list type possible-to-types conversions)
+  (if (null? possible-to-types)
+      conversions
+      (let ((conversion (get-coercion type (car possible-to-types))))
+        (if conversion
+            (get-coercion-list type (cdr possible-to-types) (append conversions (list conversion)))
+            (get-coercion-list type (cdr possible-to-types) conversions)))))
+
+; args is a list of objects, and conversions is a list of conversion lists.
+; The procedure returns a list, where every element is a list of possible objects the corresponding argument could be after applying possible conversions
+(define (arg-possibilites args conversions) 
+  (define (combo-iter args conversions result)
+    (if (null? args)
+        result
+        (combo-iter (cdr args) (cdr conversions) (append result (list (map (lambda (proc) (proc (car args))) (car conversions)))))))
+  (combo-iter args conversions '()))
+
+; This procedure returns (procedure args) if procedure is found, false otherwise
+(define (proc-finder op potential-args args)
+  (if (null? potential-args)
+      (let ((solution (get op (map type-tag args))))
+        (if solution
+            (list solution args)
+            false))
+      (if (not (null? (car potential-args)))
+          (let ((result (proc-finder (cdr potential-args) (append (args) (list (car (car potential-args)))))))
+            (if result
+               result
+               (proc-finder (append (list (cdr (car potential-args))) (cdr potential-args)) args)))
+         false)))
+
+#|
+As an example of when the proposed book strategy wouln't work, consider a "tower" of objects A->B->C, and there exists
+  an operation that accepts 3 arguments of types A, B, and C, respectively.
+
+If I pass arguments into this procedure of types B, B, and C, we won't ever end up at the A, B, C combination that the
+  proceure would accept. We would only try A A A, B B B, and C C C
+
+For the two argument version, we could have a tower of the form A->B, and an operation that takes 2 arguments of types A and B,
+  respectively. Passing arguments of type A and A into this procedure will never attempt the combination A B. Only A A and B B
+  woul be tried.
+|#
+              
 
 
