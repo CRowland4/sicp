@@ -101,6 +101,11 @@
 (define (div x y)
   (apply-generic 'div x y))
 
+(define (term-list poly)  ; Placeholder selector for 2.5's polynomials
+  ("list of terms for the given polynomial"))
+
+(define (coeff term) (cadr term))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.77
@@ -592,6 +597,20 @@ For the two argument version, we could have a tower of the form A->B, and an ope
   (put 'make-from-mag-ang 'complex
        (lambda (r a) (tag (make-from-mag-ang r a))))
   'done)
+
+
+
+; Exercise 2.87
+; This would be added to the polynomial package
+; A polynomial is 0 if all terms have a coefficient of 0
+(define (=zero?-poly poly)
+  (let ((poly-terms (term-list poly)))
+    (let ((non-zero-terms (filter (lambda (term) (not (= (coeff term) 0))) poly-terms)))
+      (if (or (not non-zero-terms) (null? poly-terms))
+          true
+          false))))
+(put '=zero? 'polynomial =zero?-poly)
+  
   
 
 
