@@ -47,6 +47,85 @@
 (define (tag x)  ; Defined here as a placeholder since the real <tag> procedures are internal to installation-packages
   ("tags an object"))
 
+; Package for handling rational numbers
+(define (install-rational-package)
+  ; internal procedures
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+  (define (make-rat n d)
+    (let ((g (gcd n d)))
+      (cons (/ n g) (/ d g))))
+  (define (add-rat x y)
+    (make-rat (+ (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (sub-rat x y)
+    (make-rat (- (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (mul-rat x y)
+    (make-rat (* (numer x) (numer y))
+              (* (denom x) (denom y))))
+  (define (div-rat x y)
+    (make-rat (* (numer x) (denom y))
+              (* (denom x) (numer y))))
+  ; interface to the rest of the system
+  (define (tag x) (attach-tag 'rational x))
+  (put 'add '(rational rational)
+       (lambda (x y) (tag (add-rat x y))))
+  (put 'sub '(rational rational)
+       (lambda (x y) (tag (sub-rat x y))))
+  (put 'mul '(rational rational)
+       (lambda (x y) (tag (mul-rat x y))))
+  (put 'div '(rational rational)
+       (lambda (x y) (tag (div-rat x y))))
+  (put 'make 'rational
+       (lambda (n d) (tag (make-rat n d))))
+  'done)
+; Creating "tagged" rational numbers
+(define (make-rational n d)
+  ((get 'make 'rational) n d))
+
+(define (install-complex-package)
+  ; imported procedures from rectangular and polar packages
+  (define (make-from-real-imag x y)
+    ((get 'make-from-real-imag 'rectangular) x y))
+  (define (make-from-mag-ang r a)
+    ((get 'make-from-mag-ang 'polar) r a))
+  ; internal procedures
+  (define (add-complex z1 z2)
+    (make-from-real-imag (+ (real-part z1) (real-part z2))
+                         (+ (imag-part z1) (imag-part z2))))
+  (define (sub-complex z1 z2)
+    (make-from-real-imag (- (real-part z1) (real-part z2))
+                         (- (imag-part z1) (imag-part z2))))
+  (define (mul-complex z1 z2)
+    (make-from-mag-ang (* (magnitude z1) (magnitude z2))
+                       (+ (angle z1) (angle z2))))
+  (define (div-complex z1 z2)
+    (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
+                       (- (angle z1) (angle z2))))
+  ; interface to rest of the system
+  (define (tag z) (attach-tag 'complex z))
+  (put 'add '(complex complex)
+        (lambda (z1 z2) (tag (add-complex z1 z2))))
+  (put 'sub '(complex complex)
+       (lambda (z1 z2) (tag (sub-complex z1 z2))))
+  (put 'mul '(complex complex)
+       (lambda (z1 z2) (tag (mul-complex z1 z2))))
+  (put 'div '(complex complex)
+       (lambda (z1 z2) (tag (div-complex z1 z2))))
+  (put 'make-from-real-imag 'complex
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'complex
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+; Creating "tagged" complex numbers
+(define (make-complex-from-real-imag x y)
+  ((get 'make-from-real-imag 'complex) x y))
+(define (make-complex-from-mag-ang r a)
+  ((get 'make-from-mag-ang 'complex) r a))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.77
@@ -258,6 +337,73 @@ For the two argument version, we could have a tower of the form A->B, and an ope
   respectively. Passing arguments of type A and A into this procedure will never attempt the combination A B. Only A A and B B
   woul be tried.
 |#
+
+
+
+; Exercise 2.83
+; Creating the coercion procedures and adding them to the coercion table
+(define (integer->rational num)
+  (make-rational num 1))
+(put-coercion 'scheme-number 'rational integer->rational)
+
+(define (rational->real rat)
+  (list 'real (/ (numer rat) (denom rat))))
+(put-coercion 'rational 'real rational->real)
+
+(define (real->complex num)
+  (make-complex-from-real-imag num 0))
+(put-coercion 'real 'complex real->complex)
+
+; To install a generic raise procedure, we would add the below procedures to the corresponding package of the argument type
+; Suffixes would be removed, added here only to show distinction
+; We also have to add each one to the 'raise operation in the op-type table
+(define (raise-integer num)
+  ((get-coercion 'scheme-number 'rational) num))
+(put 'raise '(scheme-number) raise-integer)
+
+(define (raise-rational rat)
+  ((get-coercion 'rational 'real) rat))
+(put 'raise '(rational) raise-rational)
+(define (raise-real real)
+  ((get-coercion 'real 'complex) real))
+(put 'raise '(real) raise-real)
+
+; Final generic raise operation
+(define (raise num)
+  (apply-generic 'raise num))
+
+
+
+; Exercise 2.84
+; Since this problem wants the arguments to be coerced from the same type, we'll use the non-generalized apply-generic as a starting point
+(define (type-table type)
+  (cond ((eq? type 'scheme-number) 0)
+        ((eq? type 'real) 1)
+        ((eq? type 'rational) 2)
+        ((eq? type 'complex) 3)
+        ((eq? type 'rectangular) 3)
+        ((eq? type 'polar) 3)
+        (else (error "Type not recognized" type))))
+
+(define (apply-generic-raise op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (cond (= type1 type2)
+                      (error "No method for these types" (list op type-tags))
+                      ((>  (type-table type1) (type-table type2))
+                       (apply-generic-raise op a1 (raise a2)))
+                      (else (apply-generic-raise op (raise a1) a2))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+
               
 
 
