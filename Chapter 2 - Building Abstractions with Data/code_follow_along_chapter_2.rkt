@@ -1423,6 +1423,30 @@ The sums are reduced, but we still need to reduce the products
 
 
 
+
+
+
+#|
+Final notes for this chapter
+
+When reading this book on my first pass, I was focused on understanding the individual pieces of the
+system at large. The book uses a lot of "wishful thinking", as it calls it, while introducing new topics
+which defers the actual creation of the procedures until later. Then it offers multiple representations
+of the same procedures, objects, and ideas. Again, to put it another way, I was less concerned on this
+read-through with creating a working system, and more concerned with understanding the building blocks
+of its foundation. As the chapter went on, I found it increasingly difficult to hold the full system's
+abstractions in my head in order to correctly and cleanly answer the exercises. This confusion is played
+out as well in the responses to the exercises in the community guide I was following allow with here:
+          http://community.schemewiki.org
+The further you go in the questions in chapter two, the more you have users consistently saying that other
+answers are incorrect.
+
+I would like to make a second pass in the future where my focus is actually building the working system
+as a whole, rather than only understanding how it would be built.  
+|#
+
+
+
         
     
   

@@ -650,3 +650,19 @@ For the two argument version, we could have a tower of the form A->B, and an ope
  ; Ideally, we would have a separate sub-poly procedure so the error wouldn't be "ADD-POLY", but for now this will do.
 (put 'sub '(polynomial polynomial)
      (lambda (x y) (tag (add x (negate y)))))
+
+
+
+; Exercise 2.89
+; Everything will stay the same except for adjoin-term and first-term
+; adjoin-term
+(define (adjoin-term-dense term term-list)
+  (if (=zero? (coeff term))
+      term-list
+      (cons (coeff term) term-list)))
+
+;first-term
+(define (first-term-dense term-list)
+  (let ((order (- (length term-list) 1)))
+    (make-term order (car term-list))))
+    
