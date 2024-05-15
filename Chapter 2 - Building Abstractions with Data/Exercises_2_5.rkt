@@ -86,45 +86,20 @@
 (define (make-rational n d)
   ((get 'make 'rational) n d))
 
-(define (install-complex-package)
-  ; imported procedures from rectangular and polar packages
-  (define (make-from-real-imag x y)
-    ((get 'make-from-real-imag 'rectangular) x y))
-  (define (make-from-mag-ang r a)
-    ((get 'make-from-mag-ang 'polar) r a))
-  ; internal procedures
-  (define (add-complex z1 z2)
-    (make-from-real-imag (+ (real-part z1) (real-part z2))
-                         (+ (imag-part z1) (imag-part z2))))
-  (define (sub-complex z1 z2)
-    (make-from-real-imag (- (real-part z1) (real-part z2))
-                         (- (imag-part z1) (imag-part z2))))
-  (define (mul-complex z1 z2)
-    (make-from-mag-ang (* (magnitude z1) (magnitude z2))
-                       (+ (angle z1) (angle z2))))
-  (define (div-complex z1 z2)
-    (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
-                       (- (angle z1) (angle z2))))
-  ; interface to rest of the system
-  (define (tag z) (attach-tag 'complex z))
-  (put 'add '(complex complex)
-        (lambda (z1 z2) (tag (add-complex z1 z2))))
-  (put 'sub '(complex complex)
-       (lambda (z1 z2) (tag (sub-complex z1 z2))))
-  (put 'mul '(complex complex)
-       (lambda (z1 z2) (tag (mul-complex z1 z2))))
-  (put 'div '(complex complex)
-       (lambda (z1 z2) (tag (div-complex z1 z2))))
-  (put 'make-from-real-imag 'complex
-       (lambda (x y) (tag (make-from-real-imag x y))))
-  (put 'make-from-mag-ang 'complex
-       (lambda (r a) (tag (make-from-mag-ang r a))))
-  'done)
 ; Creating "tagged" complex numbers
 (define (make-complex-from-real-imag x y)
   ((get 'make-from-real-imag 'complex) x y))
 (define (make-complex-from-mag-ang r a)
   ((get 'make-from-mag-ang 'complex) r a))
+
+(define (add x y)
+  (apply-generic 'add x y))
+(define (sub x y)
+  (apply-generic 'sub x y))
+(define (mul x y)
+  (apply-generic 'mul x y))
+(define (div x y)
+  (apply-generic 'div x y))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -465,6 +440,158 @@ For the two argument version, we could have a tower of the form A->B, and an ope
                           (solution-args (cadr procedure-and-args)))
                       (drop (apply solution-proc (map contents solution-args))))
                     (error "No method for these types" (list op type-tags))))))))))
+
+
+
+; Exercise 2.86
+; To implement this change, we update all the operations done the different types of numbers inside their packages to be generic,
+;   and also create new generic operations (over ordinary and rational numbers) for sqrt, sin, cos, and atan
+; Change square to use generic multiplication
+(define (square x)
+  (mul x x))
+
+; To install a generic sin, cos, atan, and sqrt procedures, we would add the below procedures to the corresponding package of the argument type
+; Suffixes would be removed, added here only to show distinction
+; We also have to add each one to the correct operation in the op-type table
+
+; Generic sine
+(define (sine-real num)
+  ((sin (contents num))))
+(define (sine-rat rat)
+  (sin (/ (numer rat) (denom rat))))
+(put 'sine 'real sine-real)
+(put 'sine 'rational sine-rat)
+(define (sine num)
+  (if (eq? (type-tag num) 'scheme-number)
+      (sin num)
+      (apply-generic 'sine num)))
+
+; Generic cosine
+(define (cosine-real num)
+  ((cos (contents num))))
+(define (cosine-rat rat)
+  (cos (/ (numer rat) (denom rat))))
+(put 'cosine 'real cosine-real)
+(put 'cosine 'rational cosine-rat)
+(define (cosine num)
+  (if (eq? (type-tag num) 'scheme-number)
+      (cos num)
+      (apply-generic 'cosine num)))
+
+; Generic atang
+(define (atang-real num)
+  ((atan (contents num))))
+(define (atang-rat rat)
+  (atan (/ (numer rat) (denom rat))))
+(put 'atang 'real atang-rat)
+(put 'atang 'rational atang-rat)
+(define (atang num)
+  (if (eq? (type-tag num) 'scheme-number)
+      (atan num)
+      (apply-generic 'atang num)))
+
+; Generic sqroot
+(define (sqroot-real num)
+  ((sqrt (contents num))))
+(define (sqroot-rat rat)
+  (sqrt (/ (numer rat) (denom rat))))
+(put 'sqroot 'real sqroot-rat)
+(put 'sqroot 'rational sqroot-rat)
+(define (sqroot num)
+  (if (eq? (type-tag num) 'scheme-number)
+      (sqrt num)
+      (apply-generic 'sqroot num)))
+
+; Changes to operations used in packages
+(define (install-rectangular-package)
+  (define (real-part z)
+    (car z))
+  (define (imag-part z)
+    (cdr z))
+  (define (make-from-real-imag x y)
+    (cons x y))
+  (define (magnitude z)
+    (sqrt (add (square (real-part z))  ; change the addition to the generic selector add
+               (square (imag-part z)))))
+  (define (angle z)
+    (atan (imag-part z) (imag-part z) (real-part z)))
+  (define (make-from-mag-ang r a)
+    (cons (mul r (cos a)) (mul r (sin a))))  ; Change to generic multiplication
+  ; Interface to the rest of the system
+  (define (tag x)
+    (attach-tag 'rectangular x))
+  (put 'real-part '(rectangular) real-part)
+  (put 'imag-part '(rectangular) imag-part)
+  (put 'magnitude '(rectangular) magnitude)
+  (put 'angle '(rectangular) angle)
+  (put 'make-from-real-imag 'rectangular
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'rectangular
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+(define (install-polar-package)
+  ; Internal procedures
+  (define (magnitude z)
+    (car z))
+  (define (angle z)
+    (cdr z))
+  (define (make-from-mag-ang r a)
+    (cons r a))
+  (define (real-part z)
+    (mul (magnitude z) (cos (angle z))))  ; Change to generic multiplication
+  (define (imag-part z)
+    (mul (magnitude z) (sin (angle z))))  ; Change to generic multiplication
+  (define (make-from-real-imag x y)
+    (cons (sqrt (add (square x) (square y)))  ; Change to generic addition
+          (atan y x)))
+  ; Interface to the rest of the system
+  (define (tag x)
+    (attach-tag 'polar x))
+  (put 'real-part '(polar) real-part)
+  (put 'imag-part '(polar) imag-part)
+  (put 'magnitude '(polar) magnitude)
+  (put 'angle '(polar) angle)
+  (put 'make-from-real-imag 'polar
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'polar
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+(define (install-complex-package)
+  ; imported procedures from rectangular and polar packages
+  (define (make-from-real-imag x y)
+    ((get 'make-from-real-imag 'rectangular) x y))
+  (define (make-from-mag-ang r a)
+    ((get 'make-from-mag-ang 'polar) r a))
+  ; internal procedures
+  (define (add-complex z1 z2)
+    (make-from-real-imag (add (real-part z1) (real-part z2)) ; Change to generic addition
+                         (add (imag-part z1) (imag-part z2))))
+  (define (sub-complex z1 z2)
+    (make-from-real-imag (sub (real-part z1) (real-part z2))  ; Change to generic subtraction
+                         (sub (imag-part z1) (imag-part z2))))
+  (define (mul-complex z1 z2)
+    (make-from-mag-ang (mul (magnitude z1) (magnitude z2)) ; Change to generic multiplication
+                       (add (angle z1) (angle z2))))  ; Change to generic addition
+  (define (div-complex z1 z2)
+    (make-from-mag-ang (div (magnitude z1) (magnitude z2))  ; Change to generic division
+                       (sub (angle z1) (angle z2))))  ; Change to generic subtraction
+  ; interface to rest of the system
+  (define (tag z) (attach-tag 'complex z))
+  (put 'add '(complex complex)
+        (lambda (z1 z2) (tag (add-complex z1 z2))))
+  (put 'sub '(complex complex)
+       (lambda (z1 z2) (tag (sub-complex z1 z2))))
+  (put 'mul '(complex complex)
+       (lambda (z1 z2) (tag (mul-complex z1 z2))))
+  (put 'div '(complex complex)
+       (lambda (z1 z2) (tag (div-complex z1 z2))))
+  (put 'make-from-real-imag 'complex
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'complex
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
   
 
 
