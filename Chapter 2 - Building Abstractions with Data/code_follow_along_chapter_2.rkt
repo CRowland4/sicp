@@ -1441,7 +1441,7 @@ out as well in the responses to the exercises in the community guide I was follo
 The further you go in the questions in chapter two, the more you have users consistently saying that other
 answers are incorrect.
 
-I would like to make a second pass in the future where my focus is actually building the working system
+I would like to make a second pass in the future on this chapter where my focus is actually building the working system
 as a whole, rather than only understanding how it would be built.  
 |#
 
