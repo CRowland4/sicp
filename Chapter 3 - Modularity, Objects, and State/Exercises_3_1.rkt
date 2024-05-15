@@ -40,3 +40,32 @@
           (else (error "Unknown request: MAKE-ACCOUNT"
                        m))))
   dispatch)
+
+
+
+; Exercise 3.4
+(define (make-account-secure balance password)
+  (define incorrect-passwords 0)
+
+  (define (call-the-cops x)
+    "Cops have been called!")
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (dispatch user-password m)
+    (cond ((not (eq? user-password password))
+           (begin
+             (set! incorrect-passwords (+ incorrect-passwords 1))
+             (if (> incorrect-passwords 7)
+                 call-the-cops
+                 (lambda (x) "Incorrect password"))))
+          ((eq? m 'withdraw) withdraw)
+          ((eq? m 'deposit) deposit)
+          (else (error "Unknown request: MAKE-ACCOUNT"
+                       m))))
+  dispatch)
