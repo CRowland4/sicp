@@ -106,6 +106,21 @@
 
 (define (coeff term) (cadr term))
 
+(define (order term) (car term))
+
+(define (make-term order coeff) (list order coeff))
+
+(define (empty-termlist? term-list) (null? term-list))
+
+(define (first-term term-list) (car term-list))
+
+(define (rest-terms term-list) (cdr term-list))
+
+(define (adjoin-term term term-list)
+  (if (=zero? (coeff term))
+      term-list
+      (cons term term-list)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 2.77
@@ -610,10 +625,28 @@ For the two argument version, we could have a tower of the form A->B, and an ope
           true
           false))))
 (put '=zero? 'polynomial =zero?-poly)
-  
-  
 
 
-              
 
+; Exercise 2.88
+; I'm only going to focus on the polynomial package here, and we'll just assume the negation operation
+;   is defined for the other packages as well
 
+; This procedure would go in the polynomial package
+; To negate a polynomial, simply negat all it's terms
+(define (negation-poly poly)
+  (map negate-term (term-list poly)))
+(put 'negation 'polynomial negation-poly)
+; To negate a term, you negate the coefficient
+(define (negate-term term)
+  (make-term (order term) (negate (coeff term))))
+
+; General negation
+(define (negation-generic object)
+  (apply-generic 'negation object))
+
+; Now to subtract terms, we just need to add the negation of the terms
+; This would be in the poly-package
+ ; Ideally, we would have a separate sub-poly procedure so the error wouldn't be "ADD-POLY", but for now this will do.
+(put 'sub '(polynomial polynomial)
+     (lambda (x y) (tag (add x (negate y)))))
