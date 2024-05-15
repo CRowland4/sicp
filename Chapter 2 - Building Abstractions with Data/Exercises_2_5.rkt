@@ -404,6 +404,70 @@ For the two argument version, we could have a tower of the form A->B, and an ope
                      (list op type-tags)))))))
 
 
+
+; Exercise 2.85
+; To install a generic project procedure, we would add the below procedures to the corresponding package of the argument type
+; Suffixes would be removed, added here only to show distinction
+; We also have to add each one to the 'project operation in the op-type table
+(define (project-complex num)
+  (list 'real (real-part (contents num))))
+(put 'project 'complex project-complex)
+
+(define (project-real num)
+  (make-rational (round (contents num)) 1))
+(put 'project 'real project-real)
+
+(define (project-rational rat)
+  (round (/ (numer rat) (denom rat))))
+(put 'project 'rational project-rational)
+
+; To install a generic drop procedure, we would add the below procedures to the corresponding package of the argument type
+; Suffixes would be removed, added here only to show distinction
+; We also have to add each one to the 'drop operation in the op-type table
+(define (drop-complex num)
+  (list 'real (* 1.0 (real-part num))))
+(put 'drop 'complex drop-complex)
+
+(define (drop-real num)
+  (make-rational (round (contents num)) 1))
+(put 'drop 'real drop-real)
+
+(define (drop-rat rat)
+  (numer rat))
+(put 'drop 'rational drop-rat)
+
+; Generic project and drop
+(define (project num)
+  (apply-generic 'project num))
+(define (drop num)
+  (cond ((eq? (type-tag num) 'scheme-number) num)
+        ((equ? (project (raise num)) num)
+         (drop (apply-generic 'drop num)))
+        (else num)))
+; Add the equ? procedure to the reals
+(define (equ?-real num1 num2)
+  (= (car (contents num1)) (car (contents num2))))
+(put 'equ? ('real 'real) equ?-real)
+
+; I'll use my fully generalized apply-generic procedure here
+(define (apply-generic-generalized-simplify op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc         
+          (drop (apply proc (map contents args)))
+          (let ((possible-conversions (map
+                                       (lambda (x) (get-coercion-list x type-tags (list (lambda (x) x))))
+                                       type-tags)))  ; This will return a list of conversion procedure lists
+            (let ((possible-args (arg-possibilites args possible-conversions)))  ; This retrns a list of lists, where each list is potential objects for that arg
+              (let ((procedure-and-args (proc-finder op possible-args '())))
+                (if (not (null? procedure-and-args))
+                    (let ((solution-proc (car procedure-and-args))
+                          (solution-args (cadr procedure-and-args)))
+                      (drop (apply solution-proc (map contents solution-args))))
+                    (error "No method for these types" (list op type-tags))))))))))
+  
+
+
               
 
 
