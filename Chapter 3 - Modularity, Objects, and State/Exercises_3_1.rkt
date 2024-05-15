@@ -19,3 +19,24 @@
              (begin (set! counter (+ counter 1))
                     (f x)))))
     mf))
+
+
+
+; Exercise 3.3
+(define (make-account balance password)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (dispatch user-password m)
+    (cond ((not (eq? user-password password))
+           (lambda (x) "Incorrect password"))
+          ((eq? m 'withdraw) withdraw)
+          ((eq? m 'deposit) deposit)
+          (else (error "Unknown request: MAKE-ACCOUNT"
+                       m))))
+  dispatch)
