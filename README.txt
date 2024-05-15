@@ -1,3 +1,5 @@
+5/15/2024
+
 This repo contains my notes and solutions to problems as I go through Structure and Interpretation of Computer Programs, Second Edition.
 
 There is one directory for each chapter. Within these directories are two types of files, exercise files and code follow along files. The code follow along files are simply me writing out the code in the book in order to get a better understanding of it. The exercise files contain my (sometimes rough) solutions to each exercise.
