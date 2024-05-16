@@ -104,5 +104,24 @@
   (estimate-integral unit-circle-predicate 0.0 4.0 0.0 4.0 5000000))
 
 
+
+; Exercise 3.6
+(define (rand-update x) (+ x 1))  ; Just here to avoid errors, this isn't what this procedure would look like
+(define random-init 5)
+(define rand
+  (let ((x random-init))
+    (lambda (symbol)
+      (cond ((eq? symbol 'generate)
+             (set! x (rand-update x))
+             x)
+            ((eq? symbol 'reset)
+             (lambda (new-value)
+               (set! x new-value)
+               (display "Internal random number generator state reset to ")
+               (display new-value)))
+            (else (error "Symbol not recognized RAND:" symbol))))))
+
+
+
   
   
