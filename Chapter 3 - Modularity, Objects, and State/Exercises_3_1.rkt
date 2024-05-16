@@ -123,5 +123,32 @@
 
 
 
+; Exercise 3.7
+(define (make-joint password-protected-account account-password new-password)
+  (begin ((password-protected-account account-password 'add-password) new-password)
+         password-protected-account))
+
+(define (make-account-modified balance . password)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (add-password new-password)
+    (begin (set! password (cons new-password password))
+           "Password added"))
+  (define (dispatch user-password m)
+    (cond ((not (memq user-password password))
+           (lambda (x) "Incorrect password"))
+          ((eq? m 'withdraw) withdraw)
+          ((eq? m 'deposit) deposit)
+          ((eq? m 'add-password) add-password)
+          (else (error "Unknown request: MAKE-ACCOUNT"
+                       m))))
+  dispatch)
+
   
   
