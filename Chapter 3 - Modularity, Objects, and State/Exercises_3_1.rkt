@@ -150,5 +150,16 @@
                        m))))
   dispatch)
 
-  
-  
+
+
+; Exercise 3.8
+(define f
+  (let ((call-count 0))
+    (lambda (x)
+      (begin (set! call-count (+ call-count 1))
+             (if (= (remainder call-count 2) 1)
+                 1
+                 (- x))))))
+
+
+
