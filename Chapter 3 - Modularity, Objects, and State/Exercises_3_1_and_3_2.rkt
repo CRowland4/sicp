@@ -163,3 +163,13 @@
 
 
 
+; Exercise 3.9 - in LiquidText
+
+
+
+; Exercise 3.10 - in LiquidText
+
+
+
+; Exercise 3.11 - in LiquidText
+
