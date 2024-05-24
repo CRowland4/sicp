@@ -72,7 +72,20 @@ w  ; (a b c d)
 
 
 ; Exercise 3.19
-          
+(define (constant-contains-cycle? items)
+  (define (iter first second)
+    (if (eq? first second)
+        true
+        (if (or (null? (cdr second))
+                (null? (cddr second)))
+            false
+            (iter (cdr first) (cddr second)))))
+  (if (or (null? (cdr items))
+          (null? (cddr items)))
+      false
+      (iter (cdr items) (cddr items))))
+
+    
 
 
 
