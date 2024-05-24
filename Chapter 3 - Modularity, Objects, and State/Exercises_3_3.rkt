@@ -1,4 +1,42 @@
 #lang sicp
+
+; Everything between here and the row of semi-colons is defined so that the problems have access to them
+(define (front-ptr queue)
+  (car queue))
+(define (rear-ptr queue)
+  (cdr queue))
+(define (set-front-ptr! queue item)
+  (set-car! queue item))
+(define (set-rear-ptr! queue item)
+  (set-cdr! queue item))
+
+; The operations of the queue
+(define (empty-queue? queue)
+  (null? (front-ptr queue)))
+(define (make-queue)
+  (cons '() '()))
+(define (front-queue queue)
+  (if (empty-queue? queue)
+      (error "FRONT called with an empty queue" queue)
+      (car (front-ptr queue))))
+(define (insert-queue! queue item)
+  (let ((new-pair (cons item '())))
+    (cond ((empty-queue? queue)
+           (set-front-ptr! queue new-pair)
+           (set-rear-ptr! queue new-pair)
+           queue)
+          (else
+           (set-cdr! (rear-ptr queue) new-pair)
+           (set-rear-ptr! queue new-pair)'
+           queue))))
+(define (delete-queue! queue)
+  (cond ((empty-queue? queue)
+         (error "DELETE! called with an empty queue" queue))
+        (else (set-front-ptr! queue (cdr (front-ptr queue)))
+              queue)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Exercise 3.12
 (define (append! x y)
   (set-cdr! (last-pair x) y)
@@ -85,7 +123,25 @@ w  ; (a b c d)
       false
       (iter (cdr items) (cddr items))))
 
-    
+
+
+; Exercise 3.20 - in LiquidText
 
 
 
+; Exercise 3.21 - in LiquidText
+(define q1 (make-queue))
+(insert-queue! q1 'a)
+(insert-queue! q1 'b)
+(delete-queue! q1)
+(delete-queue! q1)
+
+#|
+Eva is talking about the fact that, to the interpreter, a "queue" looks just like a list where the first item is a list of all items in
+   the queue, and the last item is a list with a single term, with that term being the last item in the queue.
+
+To print the queue like we'd expect, we just need to see what the front pointer is looking at, from the perspective of the interpreter.
+|#
+
+(define (print-queue queue)
+  (front-ptr queue))

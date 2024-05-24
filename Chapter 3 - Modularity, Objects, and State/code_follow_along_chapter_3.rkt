@@ -182,3 +182,62 @@ z1  ; ((a b) a b)
 (set-to-wow! z1)  ; ((wow b) wow b)
 z2  ; ((a b) a b)
 (set-to-wow! z2)  ; ((wow b) a b)
+
+
+
+; Procedre-based pairs that also implement set-car! and set-cdr!
+(define (cons x y)
+  (define (set-x! v) (set! x v))
+  (define (set-y! v) (set! y v))
+  (define (dispatch m)
+    (cond
+      ((eq? m 'car) x)
+      ((eq? m 'cdr) y)
+      ((eq? m 'set-car!) set-x!)
+      ((eq? m 'set-cdr!) set-y!)
+      (else
+       (error "Undefined operation: CONS" m))))
+  dispatch)
+(define (car z) (z 'car))
+(define (cdr z) (z 'cdr))
+(define (set-car! z new-value)
+  ((z 'set-car!) new-value) z)
+(define (set-cdr! z new-value)
+  ((z 'set-cdr!) new-value) z)
+
+
+
+; Creating a queue structure - a queue will be represented as a pair of pointers, whose car points to the first item, and whose cdr points to the last
+(define (front-ptr queue)
+  (car queue))
+(define (rear-ptr queue)
+  (cdr queue))
+(define (set-front-ptr! queue item)
+  (set-car! queue item))
+(define (set-rear-ptr! queue item)
+  (set-cdr! queue item))
+
+; The operations of the queue
+(define (empty-queue? queue)
+  (null? (front-ptr queue)))
+(define (make-queue)
+  (cons '() '()))
+(define (front-queue queue)
+  (if (empty-queue? queue)
+      (error "FRONT called with an empty queue" queue)
+      (car (front-ptr queue))))
+(define (insert-queue! queue item)
+  (let ((new-pair (cons item '())))
+    (cond ((empty-queue? queue)
+           (set-front-ptr! queue new-pair)
+           (set-rear-ptr! queue new-pair)
+           queue)
+          (else
+           (set-cdr! (rear-ptr queue) new-pair)
+           (set-rear-ptr! queue new-pair)'
+           queue))))
+(define (delete-queue! queue)
+  (cond ((empty-queue? queue)
+         (error "DELETE! called with an empty queue" queue))
+        (else (set-front-ptr! queue (cdr (front-ptr queue)))
+              queue)))
