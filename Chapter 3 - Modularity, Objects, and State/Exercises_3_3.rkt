@@ -56,3 +56,23 @@ w  ; (a b c d)
   (iter x '()))
 
 
+
+; Exercise 3.18
+(define (contains-cycle? items)
+  (define (iter pair visited)
+    (cond ((null? pair) false)
+          ((not (pair? pair)) false)
+          ((memq pair visited) true)
+          (else
+           (begin
+             (set! visited (cons pair visited))
+             (iter (cdr pair) visited)))))
+  (iter items '()))
+
+
+
+; Exercise 3.19
+          
+
+
+
