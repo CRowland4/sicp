@@ -1,4 +1,4 @@
-#lang scheme
+#lang sicp
 ; Exercise 3.1
 (define (make-accumulator value)
     (lambda (amount)

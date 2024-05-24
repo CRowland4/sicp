@@ -1,4 +1,4 @@
-#lang scheme
+#lang sicp
 ; A variable with state
 (define balance 100)
 (define (withdraw amount)
@@ -164,3 +164,21 @@
                  (set! counter (+ counter 1))
                  (iter))))
     (iter)))
+
+
+
+; An individual pair being "shared" among different data objects
+(define x (list 'a 'b))
+(define z1 (cons x x))
+
+; Same result when printed, but different objects
+(define z2 (cons (list 'a 'b) (list 'a 'b)))
+
+
+
+; Procedure that modifies the car of the structure to which it's applied
+(define (set-to-wow! x) (set-car! (car x) 'wow) x)
+z1  ; ((a b) a b)
+(set-to-wow! z1)  ; ((wow b) wow b)
+z2  ; ((a b) a b)
+(set-to-wow! z2)  ; ((wow b) a b)
