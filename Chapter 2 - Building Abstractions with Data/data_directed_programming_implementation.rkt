@@ -137,6 +137,8 @@ Every variation asked for in the exercises won't be present, but anytime sometin
        (lambda (x y) (tag (/ x y))))
   (put 'equ? '(scheme-number scheme-number)  ; Exercise 2.79
        (lambda (x y) (= x y)))
+  (put '=zero? '(scheme-number)  ; Exercise 2.80
+       (lambda (x) (= 0 x))) 
   (put 'make 'scheme-number (lambda (x) (tag x)))
   "Scheme-number package installed")
 
@@ -175,6 +177,8 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (put 'equ? '(rational rational)  ; Exercise 2.79
        (lambda (x y) (= (* (numer x) (denom y))
                         (* (numer y) (denom x)))))
+  (put '=zero? '(rational)  ; Exercise 2.80
+       (lambda (x) (= (numer x) 0)))
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   "Rational number package installed")
@@ -212,6 +216,10 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (put 'equ? '(complex complex)  ; Exercise 2.79
        (lambda (z1 z2) (and (= (real-part z1) (real-part z2))
                             (= (imag-part z1) (imag-part z2)))))
+  (put '=zero? '(complex)  ; Exercise 2.80
+       (lambda (z) (or (and (= (real-part z) 0)
+                            (= (imag-part z) 0))
+                       (= (magnitude z) 0))))
   (put 'make-from-real-imag 'complex
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'complex
@@ -253,6 +261,7 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 (define (equ? x y) (apply-generic 'equ? x y))  ; Exercise 2.79
+(define (=zero? x) (apply-generic '=zero? x))  ; Exercise 2.80
 (define (make-scheme-number n)
   ((get 'make 'scheme-number) n))
 (define (make-rational n d)
@@ -287,6 +296,8 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (equ? a b)
 (equ? a a)
 (equ? b b)
+(=zero? a)
+(=zero? (make-scheme-number 0))
 
 ; Rational number operations
 (define r (make-rational 3 4))
@@ -299,6 +310,8 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (equ? r r)
 (equ? s s)
 (equ? r (make-rational 6 8))
+(=zero? r)
+(=zero? (make-rational 0 4))
 
 ; Complex number operations
 (define z3 (make-complex-from-real-imag 1 2))
@@ -318,3 +331,6 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (equ? z3 z4)
 (eq? z3 z3)
 (eq? z4 z4)
+(=zero? z4)
+(=zero? (make-complex-from-real-imag 0 0))
+(=zero? (make-complex-from-mag-ang 0 6.28))
