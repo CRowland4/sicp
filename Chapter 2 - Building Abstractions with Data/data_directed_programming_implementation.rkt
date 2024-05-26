@@ -17,14 +17,28 @@ Every variation asked for in the exercises won't be present, but anytime sometin
       contents
       (cons type-tag contents)))
 
-(define (apply-generic op . args)
+(define (apply-generic op . args)  ; Updated for exercise 2.81(c)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
-          (error
-           "No method for these types: APPLY-GENERIC"
-           (list op type-tags))))))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags)))
+                (if (= type1 type2)
+                    (error "No method for these types"
+                           (list op type-tags))
+                    (let ((a1 (car args))
+                          (a2 (cadr args))
+                          (t1->t2 (get-coercion type1 type2))
+                          (t2->t1 (get-coercion type2 type1)))
+                      (cond (t1->t2
+                             (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1
+                             (apply-generic op a1 (t2->t1 a2)))
+                            (else (error "No method for these types"
+                                     (list op type-tags)))))))
+          (error "No method for these types" (list op type-tags)))))))
 
 (define (type-tag datum)
   (if (pair? datum)
@@ -71,6 +85,12 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (define operation-table (make-table))
 (define get (operation-table 'lookup-proc))
 (define put (operation-table 'insert-proc!))
+
+; And now we make the coercion table from 2.5.2
+; This table index on two types, and tries to turn the first type into the second
+(define coercion-table (make-table))
+(define put-coercion (coercion-table 'insert-proc!))
+(define get-coercion (coercion-table 'lookup-proc))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -240,6 +260,7 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (install-rational-package)
 (install-complex-package)
 
+
 ; Rectangular and polar complex number generics
 (define (real-part z) (apply-generic 'real-part z))
 (define (imag-part z) (apply-generic 'imag-part z))
@@ -254,6 +275,7 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (put 'imag-part '(complex) imag-part)
 (put 'magnitude '(complex) magnitude)
 (put 'angle '(complex) angle)
+
 
 ; Artihmetic generics
 (define (add x y) (apply-generic 'add x y))
@@ -271,6 +293,13 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (define (make-complex-from-mag-ang r a)
   ((get 'make-from-mag-ang 'complex) r a))
 
+
+; Coercion procedures
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+(put-coercion 'scheme-number 'complex scheme-number->complex)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Running/Testing everything
 ; Rectangular complex operations
@@ -334,3 +363,5 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (=zero? z4)
 (=zero? (make-complex-from-real-imag 0 0))
 (=zero? (make-complex-from-mag-ang 0 6.28))
+
+; Coercion operations
