@@ -319,13 +319,13 @@ b) Yes, he is correct. If the object-type table doesn't contain a procedure for 
                                        type-tags)))  ; This will return a list of conversion procedure lists
             (let ((possible-args (arg-possibilites args possible-conversions)))  ; This retrns a list of lists, where each list is potential objects for that arg
               (let ((procedure-and-args (proc-finder op possible-args '())))
-                (if (not (null? procedure-and-args))
+                (if procedure-and-args
                     (let ((solution-proc (car procedure-and-args))
                           (solution-args (cadr procedure-and-args)))
                       (apply solution-proc (map contents solution-args)))
                     (error "No method for these types" (list op type-tags))))))))))
 
-; Takes a type and a list of types  (possible-to-types) and returns a list of the conversions that can be used on <type>
+; Takes a type and a list of types (possible-to-types) and returns a list of the conversions that can be used on <type>
 (define (get-coercion-list type possible-to-types conversions)
   (if (null? possible-to-types)
       conversions
@@ -351,10 +351,10 @@ b) Yes, he is correct. If the object-type table doesn't contain a procedure for 
             (list solution args)
             false))
       (if (not (null? (car potential-args)))
-          (let ((result (proc-finder (cdr potential-args) (append (args) (list (car (car potential-args)))))))
+          (let ((result (proc-finder op (cdr potential-args) (append args (list (car (car potential-args)))))))
             (if result
                result
-               (proc-finder (append (list (cdr (car potential-args))) (cdr potential-args)) args)))
+               (proc-finder op (append (list (cdr (car potential-args))) (cdr potential-args)) args)))
          false)))
 
 #|

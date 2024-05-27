@@ -10,35 +10,58 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 
 ; Below are the procedures needed to make this sytem work
 (define (square x)
-  (* x x))
+  (mul x x))  ; Exercise 2.86 - change "*" to "mul"
 
 (define (attach-tag type-tag contents)
   (if (eq? type-tag 'scheme-number)  ; Exercise 2.78
       contents
       (cons type-tag contents)))
 
-(define (apply-generic op . args)  ; Updated for exercise 2.81(c)
+(define (apply-generic op . args)  ; Generalized for Exercise 2.82
+  ; Takes a type and a list of types (possible-to-types) and returns a list of the conversions that can be used on <type>
+  (define (get-coercion-list type possible-to-types conversions)
+    (if (null? possible-to-types)
+        conversions
+        (let ((conversion (get-coercion type (car possible-to-types))))
+          (if conversion
+              (get-coercion-list type (cdr possible-to-types) (append conversions (list conversion)))
+              (get-coercion-list type (cdr possible-to-types) conversions)))))
+  ; args is a list of objects, and conversions is a list of conversion lists.
+  ; The procedure returns a list, where every element is a list of possible objects the corresponding argument could be after applying possible conversions
+  (define (arg-possibilites args conversions) 
+    (define (combo-iter args conversions result)
+      (if (null? args)
+          result
+          (combo-iter (cdr args) (cdr conversions) (append result (list (map (lambda (proc) (proc (car args))) (car conversions)))))))
+    (combo-iter args conversions '()))
+  ; This procedure returns (procedure args) if procedure is found, false otherwise
+  (define (proc-finder op potential-args args)
+    (if (null? potential-args)
+        (let ((solution (get op (map type-tag args))))
+          (if solution
+              (list solution args)
+              false))
+        (if (not (null? (car potential-args)))
+            (let ((result (proc-finder op (cdr potential-args) (append args (list (car (car potential-args)))))))
+              (if result
+                 result
+                 (proc-finder op (append (list (cdr (car potential-args))) (cdr potential-args)) args)))
+           false)))
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
-          (if (= (length args) 2)
-              (let ((type1 (car type-tags))
-                    (type2 (cadr type-tags)))
-                (if (= type1 type2)
-                    (error "No method for these types"
-                           (list op type-tags))
-                    (let ((a1 (car args))
-                          (a2 (cadr args))
-                          (t1->t2 (get-coercion type1 type2))
-                          (t2->t1 (get-coercion type2 type1)))
-                      (cond (t1->t2
-                             (apply-generic op (t1->t2 a1) a2))
-                            (t2->t1
-                             (apply-generic op a1 (t2->t1 a2)))
-                            (else (error "No method for these types"
-                                     (list op type-tags)))))))
-          (error "No method for these types" (list op type-tags)))))))
+          (let ((possible-conversions (map
+                                       (lambda (x) (get-coercion-list x type-tags (list (lambda (x) x))))
+                                       type-tags)))  ; This will return a list of conversion procedure lists
+            (let ((possible-args (arg-possibilites args possible-conversions)))  ; This retrns a list of lists, where each list is potential objects for that arg
+              (let ((procedure-and-args (proc-finder op possible-args '())))
+                (if procedure-and-args
+                    (let ((solution-proc (car procedure-and-args))
+                          (solution-args (cadr procedure-and-args)))
+                      (apply solution-proc (map contents solution-args)))
+                    (error "No method for these types" (list op type-tags))))))))))
+
 
 (define (type-tag datum)
   (if (pair? datum)
@@ -101,12 +124,12 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (define (imag-part z) (cdr z))
   (define (make-from-real-imag x y) (cons x y))
   (define (magnitude z)
-    (sqrt (+ (square (real-part z))
-             (square (imag-part z)))))
+    (sqroot (add (square (real-part z))  ; Exercise 2.86 - replace "+" with "add" and "sqrt" with "sqroot"
+                 (square (imag-part z)))))
   (define (angle z)
-    (atan (imag-part z) (real-part z)))
+    (atang (imag-part z) (real-part z)))  ; Exercise 2.86 - replace "atan" with "atang" and "/" with "div"
   (define (make-from-mag-ang r a)
-    (cons (* r (cos a)) (* r (sin a))))
+    (cons (mul r (cos a)) (mul r (sin a))))  ; Exercise 2.86 - replace "*" with "mul"
   ; interface to the rest of the system
   (define (tag x) (attach-tag 'rectangular x))
   (put 'real-part '(rectangular) real-part)
@@ -125,11 +148,11 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (define (magnitude z) (car z))
   (define (angle z) (cdr z))
   (define (make-from-mag-ang r a) (cons r a))
-  (define (real-part z) (* (magnitude z) (cos (angle z))))
-  (define (imag-part z) (* (magnitude z) (sin (angle z))))
+  (define (real-part z) (mul (magnitude z) (cosine (angle z))))  ; Exercise 2.86 - replace "*" with "mul", and cos with cosine
+  (define (imag-part z) (mul (magnitude z) (sine (angle z))))  ; Exercise 2.86 - replace "*" with "mul", and sin with sine
   (define (make-from-real-imag x y)
-    (cons (sqrt (+ (square x) (square y)))
-          (atan y x)))
+    (cons (sqrt (add (square x) (square y)))  ; Exercise 2.86 - replace "+" with "add"
+          (atang y x)))  ; Exercise 2.86 - replace "atan" with "atang"
   ; interface to the rest of the system
   (define (tag x) (attach-tag 'polar x))
   (put 'real-part '(polar) real-part)
@@ -158,7 +181,15 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (put 'equ? '(scheme-number scheme-number)  ; Exercise 2.79
        (lambda (x y) (= x y)))
   (put '=zero? '(scheme-number)  ; Exercise 2.80
-       (lambda (x) (= 0 x))) 
+       (lambda (x) (= 0 x)))
+  (put 'sine '(scheme-number)  ; Exercise 2.86
+       (lambda (x) (sin (contents x))))
+  (put 'cosine '(scheme-number)  ; Exercise 2.86
+       (lambda (x) (cos (contents x))))
+  (put 'atang '(scheme-number scheme-number)  ; Exercise 2.86
+       (lambda (x y) (atan (contents x) (contents y))))
+  (put 'sqroot '(scheme-number)  ; Exercise 2.86
+       (lambda (x) (sqrt (contents x))))
   (put 'make 'scheme-number (lambda (x) (tag x)))
   "Scheme-number package installed")
 
@@ -199,6 +230,15 @@ Every variation asked for in the exercises won't be present, but anytime sometin
                         (* (numer y) (denom x)))))
   (put '=zero? '(rational)  ; Exercise 2.80
        (lambda (x) (= (numer x) 0)))
+  (put 'sine '(rational)  ; Exercise 2.86
+       (lambda (x) (sin (/ (numer x) (denom x)))))
+  (put 'cosine '(rational)  ; Exercise 2.86
+       (lambda (x) (cos (/ (numer x) (denom x)))))
+  (put 'atang '(rational rational)  ; Exercise 2.86
+       (lambda (x y) (atan (/ (numer x) (denom x))
+                           (/ (numer y) (denom y)))))
+  (put 'sqroot '(rational)  ; Exercise 2.86
+       (lambda (x) (sqrt (/ (numer x) (denom x)))))
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   "Rational number package installed")
@@ -212,17 +252,17 @@ Every variation asked for in the exercises won't be present, but anytime sometin
     ((get 'make-from-mag-ang 'polar) r a))
   ; internal procedures
   (define (add-complex z1 z2)
-    (make-from-real-imag (+ (real-part z1) (real-part z2))
-                         (+ (imag-part z1) (imag-part z2))))
+    (make-from-real-imag (add (real-part z1) (real-part z2))  ; Exercise 2.86 - replace "+" with "add"
+                         (add (imag-part z1) (imag-part z2))))  ; Exercise 2.86 - replace "+" with "add"
   (define (sub-complex z1 z2)
-    (make-from-real-imag (- (real-part z1) (real-part z2))
-                        (- (imag-part z1) (imag-part z2))))
+    (make-from-real-imag (sub (real-part z1) (real-part z2))  ; Exercise 2.86 - replace "-" with "sub"
+                         (sub (imag-part z1) (imag-part z2))))  ; Exercise 2.86 - replace "-" with "sub"
   (define (mul-complex z1 z2)
-    (make-from-mag-ang (* (magnitude z1) (magnitude z2))
-                       (+ (angle z1) (angle z2))))
+    (make-from-mag-ang (mul (magnitude z1) (magnitude z2))  ; Exercise 2.86 - replace "*" with "mul"
+                       (add (angle z1) (angle z2))))  ; Exercise 2.86 - replace "+" with "add"
   (define (div-complex z1 z2)
-    (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
-                       (- (angle z1) (angle z2))))
+    (make-from-mag-ang (div (magnitude z1) (magnitude z2))  ; Exercise 2.86 - replace "/" with "div"
+                       (sub (angle z1) (angle z2))))  ; Exercise 2.86 - replace "-" with "sub"
   ; interface to rest of the system
   (define (tag z) (attach-tag 'complex z))
   (put 'add '(complex complex)
@@ -284,6 +324,10 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (define (div x y) (apply-generic 'div x y))
 (define (equ? x y) (apply-generic 'equ? x y))  ; Exercise 2.79
 (define (=zero? x) (apply-generic '=zero? x))  ; Exercise 2.80
+(define (sine x) (apply-generic 'sine x))  ; Exercise 2.86
+(define (cosine x) (apply-generic 'cosine x))  ; Exercise 2.86
+(define (atang x y) (apply-generic 'atang x y))  ; Exercise 2.86
+(define (sqroot x) (apply-generic 'sqroot x))  ; Exercise 2.86
 (define (make-scheme-number n)
   ((get 'make 'scheme-number) n))
 (define (make-rational n d)
@@ -297,7 +341,10 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 ; Coercion procedures
 (define (scheme-number->complex n)
   (make-complex-from-real-imag (contents n) 0))
+(define (scheme-number->rational n)
+  (make-rational n 1))
 (put-coercion 'scheme-number 'complex scheme-number->complex)
+(put-coercion 'scheme-number 'rational scheme-number->rational)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -327,6 +374,10 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (equ? b b)
 (=zero? a)
 (=zero? (make-scheme-number 0))
+(sine a)
+(cosine b)
+(atang a b)
+(sqroot (sub a b))
 
 ; Rational number operations
 (define r (make-rational 3 4))
@@ -341,6 +392,10 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (equ? r (make-rational 6 8))
 (=zero? r)
 (=zero? (make-rational 0 4))
+(sine r)
+(cosine s)
+(atang r s)
+(sqroot (sub r s))
 
 ; Complex number operations
 (define z3 (make-complex-from-real-imag 1 2))
@@ -363,5 +418,21 @@ Every variation asked for in the exercises won't be present, but anytime sometin
 (=zero? z4)
 (=zero? (make-complex-from-real-imag 0 0))
 (=zero? (make-complex-from-mag-ang 0 6.28))
+(define zr1 (make-complex-from-real-imag (make-rational 4 5) (make-rational 17 31)))
+(define zr2 (make-complex-from-mag-ang (make-rational 8 9) (make-rational 45 11)))
+(add zr1 zr2)
+(sub zr1 zr2)
+(mul zr1 zr2)
+(div zr1 zr2)
+(real-part zr1)
+(real-part zr2)
+(imag-part zr1)
+(imag-part zr2)
+(magnitude zr1)
+(magnitude zr2)
+(angle zr1)
+(angle zr2)
 
 ; Coercion operations
+(scheme-number->complex 5)
+(scheme-number->rational 5)
