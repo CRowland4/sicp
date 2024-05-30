@@ -222,7 +222,7 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (put 'add-terms '(sparse sparse)
        (lambda (L1 L2) (tag (add-terms L1 L2))))
   (put 'mul-terms '(sparse sparse)
-       (lambda (L1 L2) (tag (mul-terms))))
+       (lambda (L1 L2) (tag (mul-terms L1 L2))))
   (put 'first-term '(sparse) first-term)
   (put 'rest-terms '(sparse)
        (lambda (L) (tag (rest-terms L))))
@@ -250,8 +250,7 @@ Every variation asked for in the exercises won't be present, but anytime sometin
              (iter L1 (rest-terms L2) (append result (list (first-term L2)))))
             (else
              (iter (rest-terms L1) (rest-terms L2) (append result (list (add (first-term L1) (first-term L2))))))))
-    (iter L1 L2 '()))
-
+    (iter L1 L2 '()))    
   ; interface to rest of the system
   (define (tag L) (attach-tag 'dense L))
   (put 'add-terms '(dense dense)
@@ -259,6 +258,11 @@ Every variation asked for in the exercises won't be present, but anytime sometin
   (put 'first-term '(dense) first-term)
   (put 'rest-terms '(dense)
        (lambda (L) (tag (rest-terms L))))
+  (put 'mul-terms '(dense dense)
+       (lambda (L1 L2)
+         (apply-generic 'mul-terms
+                        (dense-termlist->sparse-termlist (tag L1))
+                        (dense-termlist->sparse-termlist (tag L2)))))
   (put 'make-dense-termlist 'dense
        (lambda (L) (tag L)))
   "Dense termlist package installed")
@@ -642,12 +646,20 @@ p2-dense
 (add p1-sparse p2-sparse)
 (add p1-sparse p1-dense)
 (add p1-sparse p2-dense)
-
 (add p1-dense p1-dense)
 (add p1-dense p2-dense)
 (add p1-dense p1-sparse)
 (add p1-dense p2-sparse)
+(mul p1-sparse p1-sparse)
+(mul p1-sparse p2-sparse)
+(mul p1-sparse p1-dense)
+(mul p1-sparse p2-dense)
+(mul p1-dense p1-dense)
+(mul p1-dense p2-dense)
+(mul p1-dense p1-sparse)
+(mul p1-dense p2-sparse)
 
 ; Coercion operations
 (scheme-number->complex 5)
 (scheme-number->rational 5)
+
