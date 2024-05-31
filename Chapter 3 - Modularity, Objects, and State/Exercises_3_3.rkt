@@ -311,3 +311,64 @@ To print the queue like we'd expect, we just need to see what the front pointer 
             ((eq? m 'insert-proc!) insert!)
             (else (error "Unknown operation: TABLE" m))))
     dispatch))
+
+
+
+; Exercise 3.25
+(define (make-table-generalized same-key?)
+  (let ((local-table (list '*table*)))
+    (define (lookup keys)
+      (define (iter table keys)
+        (let ((record
+               (assoc (car keys) (cdr table))))
+          (cond ((not record) false)  ; Key doesn't have an associated record
+                ((null? (cdr keys))  ; Last key was used, record was found
+                 (cdr record))
+                (else  ; Record was found, but there are more keys, so we make sure the record is a subtable and continue
+                 (if (not (pair? (cdr record)))
+                     false  ; We have more keys, but our record is actually a record, not a subtable
+                     (iter record (cdr keys)))))))  ; The record is a subtable, so we continue the search on this table with the rest of the keys
+      (iter local-table keys))
+    (define (insert! value keys)
+      (define (iter table keys)
+        (if (= (length keys) 1)  ; If we're on the last key,
+            (let ((record  ; Try to find the record associated with that key
+                   (assoc (car keys) (cdr table))))
+              (if record ; If a record exists for that key,
+                  (set-cdr! record value)  ; Changes the value of that record to the new value
+                  (set-cdr! table  ; Otherwise, create a new record with that value
+                            (cons (cons (car keys) value)
+                                  (cdr table)))))
+            (let ((subtable  ; If we have more keys to go,
+                   (assoc (car keys) (cdr table))))  ; Try to find a subtable associated with that key
+              (if subtable  ; If there is a record associated with that key,
+                  (if (not (pair? (cdr subtable)))  ; And that record holds a value instead of a subtable,
+                      (error "Value already exists: " (cdr subtable) " Unable to finish insertion: " keys) ; Throw an error
+                      (iter subtable (cdr keys)))  ; But if that record is actually a subtable, continue with the insertion
+                  (begin  ; If there isn't a record associated with that key, create a new table there and continue with the insertion
+                    (set-cdr! table
+                              (cons (cons (car keys) '())
+                                    (cdr table)))
+                    (iter (cadr table) (cdr keys)))))))
+      (iter local-table keys)
+      'ok)
+    (define (assoc key records)
+      (cond ((null? records) false)
+            ((same-key? key (caar records))
+             (car records))
+            (else (assoc key (cdr records)))))
+    (define (dispatch m)
+      (cond ((eq? m 'lookup-proc) lookup)
+            ((eq? m 'insert-proc!) insert!)
+            (else (error "Unknown operation: TABLE" m))))
+    dispatch))
+
+(define test (make-table-generalized eq?))
+((test 'lookup-proc) '(one two three))
+((test 'insert-proc!) 'foo '(one))
+((test 'lookup-proc) '(one))
+((test 'insert-proc!) 'bar '(four two three))
+((test 'lookup-proc) '(four two three))
+((test 'insert-proc!) 'again '(four two five))
+((test 'lookup-proc) '(four two five))
+
