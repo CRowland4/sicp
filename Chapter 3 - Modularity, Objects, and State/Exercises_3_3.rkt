@@ -371,4 +371,14 @@ To print the queue like we'd expect, we just need to see what the front pointer 
 ((test 'lookup-proc) '(four two three))
 ((test 'insert-proc!) 'again '(four two five))
 ((test 'lookup-proc) '(four two five))
+((test 'lookup-proc) '(four two three))
+
+
+
+; Exercise 3.26
+#|
+For this type of table, we would do away with the "backbone" idea and essentially implement the same structure as
+  Exercise 2.66 - each node is a list of four values: (key, value, nodes "less than" key, nodes "greater than" key).
+  In this structure, the value of a node could be null, meaning that that node is the head of a "subtable".
+|#
 
