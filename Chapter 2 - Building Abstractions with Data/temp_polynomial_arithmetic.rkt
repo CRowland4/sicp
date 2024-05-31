@@ -136,123 +136,311 @@
 
 
 
+; The dense package
+(define (install-dense-package)
+  ; internal procedures
+  (define (empty-termlist? L)
+    (null? (contents L)))
+  (define (first-term L)
+    (car L))
+  (define (first-term-pair L)
+    (list (- (length L) 1) (car L)))
+  (define (rest-terms L)
+    (cdr L))
+  (define (adjoin-term term term-list)
+    (if (=zero? (cadr term))
+        term-list
+        (cons term term-list)))
+  (define (add-terms L1 L2)
+    (define (iter L1 L2 result)
+      (cond ((and (empty-termlist? L1)
+                  (empty-termlist? L2))
+             result)
+            ((> (length L1) (length L2))
+             (iter (rest-terms L1) L2 (append result (list (first-term L1)))))
+            ((< (length L1) (length L2))
+             (iter L1 (rest-terms L2) (append result (list (first-term L2)))))
+            (else
+             (iter (rest-terms L1) (rest-terms L2) (append result (list (add (first-term L1) (first-term L2))))))))
+    (iter L1 L2 '()))
+  (define (sub-terms L1 L2)
+    (define (iter L1 L2 result)
+      (cond ((and (empty-termlist? L1)
+                  (empty-termlist? L2))
+             result)
+            ((> (length L1) (length L2))
+             (iter (rest-terms L1) L2 (append result (list (first-term L1)))))
+            ((< (length L1) (length L2))
+             (iter L1 (rest-terms L2) (append result (list (first-term L2)))))
+            (else
+             (iter (rest-terms L1) (rest-terms L2) (append result (list (sub (caar L1) (caar L2))))))))
+    (iter L1 L2 '()))
+  (define (mul-terms L1 L2)
+    (apply-generic 'mul-terms
+                   (dense-termlist->sparse-termlist L1)
+                   (dense-termlist->sparse-termlist L2)))
+    
+  (define (div-terms L1 L2)
+    (if (null? L1)
+        (list '() '())
+        (let ((t1 (first-term-pair L1))
+              (t2 (first-term-pair L2)))
+              (if (> (car t2) (car t1))
+                  (list '() L1)
+                  (let ((new-c (div (cadr t1) (cadr t2)))
+                        (new-o (- (car t1) (car t2))))
+                    (let ((rest-of-result
+                           (div-terms (sub-terms (attach-tag 'dense L1) (mul-terms (attach-tag 'sparse (list new-o new-c))
+                                                         (attach-tag 'dense L2))) L2)))
+                      (list (adjoin-term (list new-o new-c) (car rest-of-result))
+                      (cadr rest-of-result))))))))
+  (define (nil-or-zero? L)
+    (cond ((empty-termlist? L) true)
+          ((not (=zero? (first-term L))) false)
+          (else
+           (nil-or-zero? (rest-terms L)))))
+  (define (remove-leading-zeros L)
+    (cond ((null? L) L)
+          ((=zero? (first-term L))
+           (remove-leading-zeros (rest-terms L)))
+           (else(L))))
+  ; interface to rest of the system
+  (define (tag L) (attach-tag 'dense L))
+  (put 'add-terms '(dense dense)
+       (lambda (L1 L2) (tag (add-terms L1 L2))))
+  (put 'div-terms '(dense dense)
+       (lambda (L1 L2) (tag (div-terms L1 L2))))
+  (put 'first-term '(dense) first-term)
+  (put 'first-term-pair '(dense) first-term-pair)
+  (put 'rest-terms '(dense)
+       (lambda (L) (tag (rest-terms L))))
+  (put 'mul-terms '(dense dense)
+       (lambda (L1 L2)
+         (apply-generic 'mul-terms
+                        (dense-termlist->sparse-termlist (tag L1))
+                        (dense-termlist->sparse-termlist (tag L2)))))
+  (put 'neg '(dense)
+       (lambda (L) (tag (map
+                         (lambda (t) (mul t -1))
+                         L))))
+  (put '=zero? '(dense) nil-or-zero?)
+  (put 'equ? '(dense dense)
+       (lambda (L1 L2) (equal? (remove-leading-zeros L1) (remove-leading-zeros L2))))
+  (put 'make-dense-termlist 'dense
+       (lambda (L) (tag L)))
+  "Dense termlist package installed")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#|
-
-  
-  
+; The polynomial package
+(define (install-polynomial-package)
+  ; import from sparse/dense packages
+  (define (make-sparse-termlist L)
+    ((get 'make-sparse-termlist 'sparse) L))
+  (define (make-dense-termlist L)
+    ((get 'make-dense-termlist 'dense) L))
+  (define (add-terms L1 L2)
+    (apply-generic 'add-terms L1 L2))
+  (define (mul-terms L1 L2)
+    (apply-generic 'mul-terms L1 L2))
+  (define (first-term-pair L)
+    (apply-generic 'first-term-pair L))
+  (define (div-terms L1 L2)
+    (apply-generic 'div-terms L1 L2))
+  ; internal procedures
+  (define (make-from-existing-termlist var L)
+    (cons var L))
+  (define (term-list p)
+    (cdr p))
+  (define (variable p)
+    (car p))
+  (define (variable? x)
+    (symbol? x))
+  (define (same-variable? v1 v2)
+    (and (variable? v1)
+         (variable? v2)
+         (eq? v1 v2)))
+  (define (add-poly p1 p2)
+    (if (same-variable? (variable p1) (variable p2))
+        (make-from-existing-termlist (variable p1)
+                               (add-terms (term-list p1) (term-list p2)))
+        (error "Polys not in same var: ADD-POLY" (list p1 p2))))
+  (define (mul-poly p1 p2)
+    (if (same-variable? (variable p1) (variable p2))
+        (make-from-existing-termlist (variable p1)
+                                              (mul-terms (term-list p1) (term-list p2)))
+        (error "Polys not in same var: MUL-POLY" (list p1 p2))))
+  (define (div-poly p1 p2)
+    (if (same-variable? (variable p1) (variable p2))
+        (make-from-existing-termlist (variable p1)
+                                     (div-terms (term-list p1) (term-list p2)))
+        (error "Polys not in same var: DIV-POLY" (list p1 p2))))
+  (define (neg p)
+    (make-from-existing-termlist (variable p)
+                                 (apply-generic 'neg (term-list p))))
+  (define (add-poly-to-scheme p n)
+    (add-poly p (make-from-existing-termlist (variable p) (make-dense-termlist (list n)))))
   ; interface to rest of the system
   (define (tag p) (attach-tag 'polynomial p))
   (put 'add '(polynomial polynomial)
-       (lambda (p1 p2) (tag (add-poly p1 p2))))
+       (lambda (L1 L2) (tag (add-poly L1 L2))))
+  (put 'add '(polynomial scheme-number)
+       (lambda (p n) (tag (add-poly-to-scheme p n))))
+  (put 'add '(scheme-number polynomial)
+       (lambda (n p) (tag (add-poly-to-scheme p n))))
   (put 'mul '(polynomial polynomial)
-       (lambda (p1 p2) (tag (mul-poly p1 p2))))
-  (put 'make-from-sparse-terms 'polynomial
-       (lambda (var terms) (tag (make-from-sparse-terms var terms))))
-  (put 'make-from-dense-terms 'polynomial
-       (lambda (var terms) (tag (make-from-dense-terms var terms))))
-  "Polynomial package installed")
-|#
-#|
+       (lambda (L1 L2) (tag (mul-poly L1 L2))))
+  (put 'neg '(polynomial)
+       (lambda (p) (tag (neg p))))
+  (put 'sub '(polynomial polynomial)
+       (lambda (p1 p2) (tag (add-poly p1 (neg p2)))))
+  (put 'div '(polynomial polynomial)
+       (lambda (p1 p2) (tag (div-poly p1 p2))))
+  (put '=zero? '(polynomial)
+       (lambda (p) (=zero? (term-list p))))
+  (put 'equ? '(polynomial polynomial)
+       (lambda (p1 p2) (and (same-variable? (variable p1) (variable p2))
+                            (apply-generic 'equ? (term-list p1) (term-list p2)))))
+  (put 'make-from-sparse-termlist 'polynomial
+       (lambda (var L) (tag (cons var (make-sparse-termlist L)))))
+  (put 'make-from-dense-termlist 'polynomial
+       (lambda (var L) (tag (cons var (make-dense-termlist L)))))
+    "Polynomial package installed")
 
 
-
-  (define (the-empty-termlist)
-    '())
-  (define (empty-termlist? L)
-    (null? L))
-  (define (first-term term-list)
-    (car term-list))
-  (define (rest-terms term-list)
-    (cdr term-list))
-  
-  (define (order term)
-    (car term))
+; The sparse package
+(define (install-sparse-package)
+  ; internal procedures
+  (define (adjoin-term term term-list)
+    (if (=zero? (coeff term))
+        term-list
+        (cons term term-list)))
+  (define (make-term order coeff)
+    (list order coeff))
   (define (coeff term)
     (cadr term))
-
-  
-  
-  
-  (define (make-from-sparse-terms var sparse-terms)
-    (cons var sparse-terms))
-  (define (create-sparse-terms-from-dense-terms dense-terms)
-    (define (iter result next-order terms)
-      (cond ((empty-termlist? terms)
-             result)
-            ((= (car terms) 0)
-             (iter result (- next-order 1) (cdr terms)))
-            (else
-             (let ((new-term (make-term next-order (car terms))))
-               (iter (append result (list new-term)) (- next-order 1) (cdr terms))))))
-    (iter '() (length dense-terms) dense-terms))
-  (define (make-from-dense-terms var dense-terms)
-    (cons var
-          (create-sparse-terms-from-dense-terms dense-terms)))
-  ; interface to rest of the system
-
-|#
-
-
-
-#|
+  (define (order term)
+    (car term))
+  (define (first-term L)
+    (car L))
+  (define (rest-terms L)
+    (cdr L))
   (define (the-empty-termlist)
     '())
   (define (empty-termlist? L)
     (null? L))
-  (define (first-term term-list)
-    (car term-list))
-  (define (rest-terms term-list)
-    (cdr term-list))
   (define (add-terms L1 L2)
-    (cond ((> (length L1) (length L2))
-           (add-terms L1 (adjoin-term 0 L2)))
-          ((> (length L2) (length L1))
-           (add-terms (adjoin-term 0 L1) L2))
+    (cond ((empty-termlist? L1) L2)
+          ((empty-termlist? L2) L1)
           (else
-           (add-equal-length-term-lists L1 L2))))
-  (define (add-equal-length-term-lists L1 L2)
-    (define (iter result L1 L2)
-      (if (null? L1)
-          result
-          (let ((new-result (+ (first-term L1)
-                               (first-term L2))))
-            (iter (append result (list new-result))
-                  (rest-terms L1)
-                  (rest-terms L2)))))
-    (iter '() L1 L2))
+           (let ((t1 (first-term L1))
+                 (t2 (first-term L2)))
+             (cond ((> (order t1) (order t2))
+                    (adjoin-term
+                     t1 (add-terms (rest-terms L1) L2)))
+                   ((< (order t1) (order t2))
+                    (adjoin-term
+                     t2 (add-terms L1 (rest-terms L2))))
+                   (else
+                    (adjoin-term
+                     (make-term (order t1)
+                                (add (coeff t1) (coeff t2)))
+                     (add-terms (rest-terms L1)
+                                (rest-terms L2)))))))))
   (define (mul-terms L1 L2)
-    (if (empty-termlist? L)
+    (if (empty-termlist? L1)
         (the-empty-termlist)
         (add-terms (mul-term-by-all-terms (first-term L1) L2)
                    (mul-terms (rest-terms L1) L2))))
   (define (mul-term-by-all-terms t1 L)
-    (map (lambda (t) (mul t t1)) L))
-  (define (adjoin-term term term-list)
-    (cons term term-list))
-  (define (make-from-sparse-terms var sparse-terms)
-    (cons var
-          (make-dense-terms-from-sparse-terms sparse-terms)))
-  (define (make-dense-terms-from-sparse-terms sparse-terms)
+    (if (empty-termlist? L)
+        (the-empty-termlist)
+        (let ((t2 (first-term L)))
+          (adjoin-term
+           (make-term (+ (order t1) (order t2))
+                      (mul (coeff t1) (coeff t2)))
+           (mul-term-by-all-terms t1 (rest-terms L))))))
+  (define (div-terms L1 L2)
+    (if (null? L1)
+        (list '() '())
+        (let ((t1 (first-term L1))
+              (t2 (first-term L2)))
+              (if (> (order t2) (order t1))
+                  (list '() L1)
+                  (let ((new-c (div (coeff t1) (coeff t2)))
+                        (new-o (- (order t1) (order t2))))
+                    (let ((rest-of-result
+                           (div-terms (sub L1 (mul-terms (list new-o new-c) L2)) L2)))
+                      (list (adjoin-term (list new-o new-c) (car rest-of-result))
+                      (cadr rest-of-result))))))))
+  (define (nil-or-zero? L)
+    (cond ((empty-termlist? L) true)
+          ((not (=zero? (coeff (first-term L)))) false)
+          (else
+           (nil-or-zero? (rest-terms L)))))
+  (define (remove-zero-terms L)
     (define (iter result terms)
-      (cond ((empty-termlist? terms) result)
-            ((empty-termlist? result)
-             (iter (append result (caar terms))
-      
+      (cond ((null? terms) result)
+            ((=zero? (coeff (first-term terms)))
+             (iter result (rest-terms terms)))
+            (else
+             (iter (append result (list (first-term terms))) (rest-terms terms)))))
+    (iter '() L))
+          
   ; interface to rest of the system
-|#
+  (define (tag L) (attach-tag 'sparse L))
+  (put 'add-terms '(sparse sparse)
+       (lambda (L1 L2) (tag (add-terms L1 L2))))
+  (put 'div-terms '(sparse sparse)
+       (lambda (L1 L2) (tag (div-terms L1 L2))))
+  (put 'mul-terms '(sparse sparse)
+       (lambda (L1 L2) (tag (mul-terms L1 L2))))
+  (put 'first-term '(sparse) first-term)
+  (put 'first-term-pair '(sparse) first-term)
+  (put 'rest-terms '(sparse)
+       (lambda (L) (tag (rest-terms L))))
+  (put '=zero? '(sparse) nil-or-zero?)
+  (put 'equ? '(sparse sparse)
+       (lambda (L1 L2) (equal? (remove-zero-terms L1)
+                               (remove-zero-terms L2))))
+  (put 'neg '(sparse)
+       (lambda (L) (tag (map
+                         (lambda (t) (make-term (order t)
+                                                (mul (coeff t) -1)))
+                         L))))
+  (put 'make-sparse-termlist 'sparse
+       (lambda (L) (tag L)))
+  "Sparse termlist package installed")
+
+
+
+(define (dense-termlist->sparse-termlist L)
+  (define (iter L result)
+    (cond ((null? (contents L)) result)
+          ((=zero? (first-term L))
+           (iter (rest-terms L) result))
+          (else
+           (iter (rest-terms L)
+                 (append result (list (list (- (length L) 1) (first-term L))))))))
+  (cons 'sparse (iter L '())))
+(define (sparse-termlist->dense-termlist L)
+  (define (iter L result last-order)
+    (cond ((null? (contents L)) result)
+          ((= (- last-order 1) (car (first-term L)))
+           (iter (rest-terms L)
+                 (append result (list (cadr (first-term L))))
+                 (- last-order 1)))
+          (else
+           (iter L
+                 (append result (list 0))
+                 (- last-order 1)))))
+  (if (null? (contents L))
+      (cons 'dense '())
+      (cons 'dense (iter L '() (+ (caar (contents L)) 1)))))
+
+
+
+
+
+
+
+
