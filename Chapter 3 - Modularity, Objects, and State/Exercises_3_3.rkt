@@ -382,3 +382,16 @@ For this type of table, we would do away with the "backbone" idea and essentiall
   In this structure, the value of a node could be null, meaning that that node is the head of a "subtable".
 |#
 
+
+
+; Exercise 3.27 - environment diagrams in LiquidText
+#|
+The procedure memo-fib computes the nth Fibonacci number in a number of steps proportional to n because,
+   after the first time memo-fib is called on a number, there are only 2 operations to be done for each m < n:
+    lookup n - 1 and lookup n - 2. This prevents the giant recursion that can normally happen with these types of procedures.
+No - memo-fib recursively calles memo-fib, which means that the memoized version of itself is used to find the solutions.
+Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively called fib, which does not contain any calls
+   to the lookup table. This version of memo-fib would use the lookup table once for the inital value, then use calls to vanilla
+   fib to calculate the result. That one result would be stored in the table for next time, but it wouldn't be accessible when needed
+   for other calculations.
+|#
