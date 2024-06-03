@@ -395,3 +395,17 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
    fib to calculate the result. That one result would be stored in the table for next time, but it wouldn't be accessible when needed
    for other calculations.
 |#
+
+
+
+; Exercise 3.28
+(define (or-gate w1 w2 output)
+  (define (or-action-procedure)
+    (let ((new-value
+           (logical-or (get-signal w1) (get-signal w2))))
+      (after-delay
+       or-gate-delay
+       (lambda () (set-signal! output new-value)))))
+  (add-action! w1 or-action-procedure)
+  (add-action! w2 or-action-procedure)
+  'ok)
