@@ -413,7 +413,7 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
 
 
 ; Exercise 3.29
-(define (or-gate in1 in2 out1)
+(define (or-gate-circuit in1 in2 out1)
   (let ((w1 (make-wire))
         (w2 (make-wire))
         (w3 (make-wire)))
@@ -426,3 +426,26 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
 ; Total delay is the sum of 1 and-gate delay and three inverter-delays
 ; In a real circuit, the first two inverters could run at the same time (see drawing in LiquidText),
 ;   but in this program technically they're being called sequentially, and we haven't introduced concurrency yet.
+
+
+
+; Exercise 3.30
+(define (ripple-carry-adder A-wires B-wires S-wires C)
+  (define (iter An Bn Sn C-in)
+    (let ((C-out (make-wire)))
+      (if Sn
+          (begin
+            (full-adder (car A) (car Bn) C-in (car Sn) C-out)
+            (iter (cdr An) (cdr Bn) (cdr Sn) C-out))
+          'ok)))
+  (iter A-wires B-wires S-wires C))
+
+#|
+Each half-adder has one inverter (I), one or-gate (O), and two and-gates (A). We'll get the delay from the code-circuit itself,
+   not the real circuit that the code represents, and assume no concurrency.
+One half adder is I + O + 2A, and one full-adder is two half-adders with an or, so 2(I + O + 2A) + O.
+Then a ripple-carry-adder with n full-adders is n(2(I + O + 2A) + O), which simplifies to n(2I + 3O + 4A).
+|#
+          
+        
+  
