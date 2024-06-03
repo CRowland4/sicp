@@ -409,3 +409,20 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
   (add-action! w1 or-action-procedure)
   (add-action! w2 or-action-procedure)
   'ok)
+
+
+
+; Exercise 3.29
+(define (or-gate in1 in2 out1)
+  (let ((w1 (make-wire))
+        (w2 (make-wire))
+        (w3 (make-wire)))
+    (inverter in1 w1)
+    (inverter in2 w2)
+    (and-gate w1 w2 w3)
+    (inverter w3 out1))
+  'ok)
+
+; Total delay is the sum of 1 and-gate delay and three inverter-delays
+; In a real circuit, the first two inverters could run at the same time (see drawing in LiquidText),
+;   but in this program technically they're being called sequentially, and we haven't introduced concurrency yet.
