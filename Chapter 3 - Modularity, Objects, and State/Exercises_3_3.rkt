@@ -508,6 +508,18 @@ Running each action-procedure one time when it's added serves to propogate the i
 |#
 (propagate)
 
-          
-        
-  
+
+
+; Exercise 3.32
+#|
+When an and gate is initialized with two wires whose values are 0 and 1 respectively, the output wire's value is set to 0.
+When we change the 0 value to a 1, the action to run the logical-and procedure is added to the procedure queue.
+When we change the 1 value to a 0, the action is added again.
+
+With a queue, actions are executed in accordance with the model that they are simulating. In this model, the 0 wire was set to 1, and the
+   1 wire was set to 0. If we used a stack, the actual order of operations in our simulation would be reversed.  In this particular example,
+   after the first wire of the and-gate is switched from 0 to 1, we would expect a 1 to propagate through the output wire, because at this
+   point both of the and-gate inputs are set to 1. Then when the second wire was switched from 1 to 0, we would expect the output wire's
+   value to go back to 0, propagating that through the system. A stack would never propagate a new 1 and 0, because the and-gate values
+   would go from 1 0, to 0 0, to 0 1, meaning the value of the output wire would never change.
+|#
