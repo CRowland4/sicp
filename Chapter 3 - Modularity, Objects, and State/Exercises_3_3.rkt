@@ -409,6 +409,10 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
   (add-action! w1 or-action-procedure)
   (add-action! w2 or-action-procedure)
   'ok)
+(define (logical-or x y)
+  (if (or (= x 1) (= y 1))
+      1
+      0))
 
 
 
@@ -446,6 +450,64 @@ Each half-adder has one inverter (I), one or-gate (O), and two and-gates (A). We
 One half adder is I + O + 2A, and one full-adder is two half-adders with an or, so 2(I + O + 2A) + O.
 Then a ripple-carry-adder with n full-adders is n(2(I + O + 2A) + O), which simplifies to n(2I + 3O + 4A).
 |#
+
+
+
+; Exercise 3.31
+#| This adds the probe action to the <sum> wire's action procedures. Without running the procedure when it's added, nothing
+is printed out. While not mandatory, it is nice to see the starting point of a wire, and without (proc) we don't have that
+explicit reference.
+|#
+(probe 'sum sum)
+
+#|Same as above - adds the probe action to the <carry> wire's action procedures, and nothing is printed out.|#
+(probe 'carry carry)
+
+#|First, half-adder calls or-gate with wires input-1, input-2, and a wire internal to or-gate.
+     The or-gate procedure adds the or-action-procedure to the wires input-1 and input-2, so that whenever either one of the values
+        held by those wires changes, the value of the output wire (internal to the or-gate procedure of the half-adder circuit)
+        will be updated accordingly.
+Then and-gate is called with wires input-1, input-2, and carry.
+     The and-gate procedure adds the and-action-procedure to the wires input-1 and input-2, so that whenever either one of the values
+        held by those wires changes, the value of the carry wire will be updated accordingly.
+Then inverter is called with the carry wire, and a wire internal to the half-adder circuit.
+     The inverter procedure adds the invert-input action to the carry wire, so that whenever the value of the carry wire changes,
+        the value of the output wire (internal to the half-adder circuit) is updated accordingly.
+Finally, the and-gate is called with two wires (d and e) internal to the half-adder circuit, and the sum wire as output.
+     The and-action procedure is added to d and e, so that whenever one of their values changes, the value on the sum wire is updated accordingly.
+"ok" is printed to the screen.
+|#
+(half-adder input-1 input-2 sum carry)
+
+#|The signal for the input-1 wire is set to 1, and the action procedures on the input-1 wire are called, since the value changed from 0 to 1.
+     The first procedure to run is the or-action-procedure. It is added to the agenda to, after an or-gate-delay of 5, change the value of
+        the d wire to 1.
+     The last procedure to run is the and-action-procedure. It is added to the agenda to, after an and-gate-delay of 3 (at 8 total), update the value of
+        carry to 0, which doesn't actually change the value since it was already 0.
+"done" is printed to the screen.|#
+(set-signal! input-1 1)
+
+#|Items in the agenda are executed.
+The first item in the agenda is removed and executed.
+     The value of the d wire internal to half-adder is changed from 0 to 1.
+        The d wire has one action procedure attached to it, which is the and-action procedure. It is added to the agenda to, after an and-delay
+          of 3 (total time 11), update the value of sum to 0, which doesn't actually change the value since it was already 0.
+The next item in the agenda is removed and executed.
+     The value of the carry wire is "updated" from 0 to 0, and since there is no change, nothing happens. "done" is printed to the screen.
+The last item in the agenda is removed and executed.
+     The value of the sum wire is "updated" from 0 to 0, and nothing happens since nothing changed, but also the sum wire has no attached actions.
+
+At this point, sum should be 1, not 0, and the culprit is the missing (proc) in the add-action! procedure on a wire. When wiring together a circuit,
+   we initialize the wires we start with - in this case input-1, input-2, sum, and carry. When a wire is created, it's value is automatically set to 0.
+   But when we create the half-adder circuit, it also creates two new wires to serve as output wires for the function boxes internal to the half-adder
+   circuit. One of those output wires, e, is meant to be the output wire of the inverter box that has carry (value of 0) as it's input. So the initial
+   state of e should be 1, but it's not - it's 0 in this case. This means that when the signal passes through the final and-gate of the half-adder circuit
+   that contains d and e, the sum comes out incorrectly to 0, since only d has been set to 1 (by the first item in the agenda).
+Running each action-procedure one time when it's added serves to propogate the initialization state of the initial wires to the rest of the wires
+   in the circuit. Without it, we would have to manually set each wire internal to the circuit by hand before running any sort of simulation.
+|#
+(propagate)
+
           
         
   

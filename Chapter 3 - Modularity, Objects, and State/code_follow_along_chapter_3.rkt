@@ -1,4 +1,31 @@
 #lang sicp
+; Everything between here and the row of semi-colons is defined for access, and isn't in the order in which it's presented in the book
+
+(define (or-gate w1 w2 output)
+  (define (or-action-procedure)
+    (let ((new-value
+           (logical-or (get-signal w1) (get-signal w2))))
+      (after-delay
+       or-gate-delay
+       (lambda () (set-signal! output new-value)))))
+  (add-action! w1 or-action-procedure)
+  (add-action! w2 or-action-procedure)
+  'ok)
+
+(define (logical-or x y)
+  (if (or (= x 1) (= y 1))
+      1
+      0))
+
+(define (logical-and x y)
+  (if (and (= x 1) (= y 1))
+      1
+      0))
+      
+      
+ 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; A variable with state
 (define balance 100)
 (define (withdraw amount)
@@ -386,34 +413,89 @@ z2  ; ((a b) a b)
   (add-action! a1 and-action-procedure)
   (add-action! a2 and-action-procedure)
   'ok)
-  
 
 
 
+; Procedure for making a wire
+(define (make-wire)
+  (let ((signal-value 0) (action-procedures '()))
+    (define (set-my-signal! new-value)
+      (if (not (= signal-value new-value))
+          (begin (set! signal-value new-value)
+                 (call-each action-procedures))
+          'done))
+    (define (accept-action-procedure! proc)
+      (set! action-procedures
+            (cons proc action-procedures))
+      (proc))
+    (define (dispatch m)
+      (cond ((eq? m 'get-signal) signal-value)
+            ((eq? m 'set-signal!) set-my-signal!)
+            ((eq? m 'add-action!) accept-action-procedure!)
+            (else (error "Unknown operation: WIRE" m))))
+    dispatch))
+
+; The call-each procedure
+(define (call-each procedures)
+  (if (null? procedures)
+      'done
+      (begin ((car procedures))
+             (call-each (cdr procedures)))))
+
+; Procedures to access the local operations on wires
+(define (get-signal wire)
+  (wire 'get-signal))
+(define (set-signal! wire new-value)
+  ((wire 'set-signal!) new-value))
+(define (add-action! wire action-procedure)
+  ((wire 'add-action!) action-procedure))
 
 
 
+; Creating the agenda
+(define (after-delay delay action)
+  (add-to-agenda! (+ delay (current-time the-agenda))
+                  action
+                  the-agenda))
+
+; Propagation
+(define (propagate)
+  (if (empty-agenda? the-agenda)
+      'done
+      (let ((first-item (first-agenda-item the-agenda)))
+        (first-item)
+        (remove-first-agenda-item! the-agenda)
+        (propagate))))
 
 
 
+; Sample simulation
+(define (probe name wire)
+  (add-action! wire
+               (lambda ()
+                 (newline)
+                 (display name) (display " ")
+                 (display (current0time the-agenda))
+                 (display " New-value = ")
+                 (display (get-signal wire)))))
 
 
+(define the-agenda (make-agenda))
+(define inverter-delay 2)
+(define and-gate-delay 3)
+(define or-gate-delay 5)
+(define input-1 (make-wire))
+(define input-2 (make-wire))
+(define sum (make-wire))
+(define carry (make-wire))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(probe 'sum sum)  ; sum 0 New-value = 0
+(probe 'carry carry)  ; carry 0 New-value = 0
+(half-adder input-1 input-2 sum carry)  ; ok
+(set-signal! input-1 1)  ; done
+(propagate)  ; sum 8 New-value = 1 /n done
+(set-signal! input-2 1)  ; done
+(propagate)  ; carry 11 New-value = 1 \n sum 16 New-value = 0 \n done
 
 
     
