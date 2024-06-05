@@ -535,3 +535,12 @@ With a queue, actions are executed in accordance with the model that they are si
     (adder (a b u))
     (constant 2 v)
      'ok))
+
+
+
+; Exercise 3.34
+#|
+A multiplier should take 3 connectors - here one connector is being passed twice as if it were two separate connectors.
+If the value of the a connector is ever forgotten, then the multiplier will have two empty slots (m1 and m2) and will not
+  be able to calculate the third value appropriately.
+|#

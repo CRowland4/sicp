@@ -720,6 +720,7 @@ z2  ; ((a b) a b)
              (if informant true false))
             ((eq? request 'value) value)
             ((eq? request 'set-value!) set-my-value)
+            ((eq? request 'forget) forget-my-value)
             ((eq? request 'connect) connect)
             (else (error "Unknown operation: CONNECTOR"
                          request))))
