@@ -523,3 +523,15 @@ With a queue, actions are executed in accordance with the model that they are si
    value to go back to 0, propagating that through the system. A stack would never propagate a new 1 and 0, because the and-gate values
    would go from 1 0, to 0 0, to 0 1, meaning the value of the output wire would never change.
 |#
+
+
+
+; Exercise 3.33
+; Constraint: c = (a + b) / 2 --> 2c = a + b - constraint diagram in LiquidText
+(define (averager a b c)
+  (let ((u (make-connector))
+        (v (make-connector)))
+    (multiplier v c u)
+    (adder (a b u))
+    (constant 2 v)
+     'ok))
