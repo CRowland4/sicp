@@ -679,3 +679,24 @@ Mary -> Paul -> Peter: $40
   (s (lambda () (set! x (+ x 1)))))
 |#
 ; The first, second, and fifth options would still be possible, with ouputs of 101, 121, and 100.
+
+
+
+; Exercise 3.40
+#|
+(define x 10)
+(parallel-execute
+ (lambda () (set! x (* x x)))
+ (lambda () (set! x (* x x x))))
+|#
+; 1 - P1 sets x to 100 and then P2 sets x to 1,000,000
+; 2 - P1 access x once, then P2 sets x to 1,000, then P1 sets x to 10,000
+; 3 - P1 access x once, then P2 accesses x once, then P1 sets x to 100, then P2 sets x to 100,000
+; 4 - P1 accesses x twice, then P2 accesses x three times, then P1 sets x to 100, and P2 sets x to 1,000
+; 5 - P1 accesses x twice, then P2 accesses x three times, then P2 sets x to 1,000, and P1 sets x to 100
+
+(define x 10)
+(define s (make-serializer))
+(parallel-execute (s (lambda () (set! x (* x x))))
+                  (s (lambda () (set! x (* x x x)))))
+; After this serialization, only P1 then P2, or P2 then P1 can be run, both giving a final result of 1,000,000
