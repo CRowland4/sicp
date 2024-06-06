@@ -744,4 +744,38 @@ z2  ; ((a b) a b)
   ((connector 'forget) retractor))
 (define (connect connector new-constraint)
   ((connector 'connect) new-constraint))
+
+
+
+; Example of how a parallel execute procedure would work
+(define n 10)
+(parallel-execute
+ (lambda () (set! n (* n n)))
+ (lambda () (set! n (* n n))))
+
+; Analagous example of how the above would work if serialized
+(define y 10)
+(define s (make-serializer))
+(parallel-execute
+ (s (lambda () (set! y (* y y))))
+ (s (lambda () (set! y (+ y 1)))))
+
+; Version of make-account from 3.1.1, but serialized
+(define (make-account-serialized balance)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (let ((protected (make-serializer)))
+    (define (dispatch m)
+      (cond ((eq? m 'withdraw) (protected withdraw))
+            ((eq? m 'deposit) (protected deposit))
+            ((eq? m 'balance) balance)
+            (else (error "Unknown request: MAKE-ACCOUNT"
+                         m))))
+    diepatch))
     

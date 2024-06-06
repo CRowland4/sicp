@@ -667,3 +667,15 @@ Paul -> Mary -> Peter: Balance = %50
 Mary -> Peter -> Paul: $40
 Mary -> Paul -> Peter: $40
 |#
+
+
+
+; Exercise 3.39
+#|
+(define x 10)
+(define s (make-serializer))
+(parallel-execute
+  (lambda () (set! x ((s (lambda () (* x x))))))
+  (s (lambda () (set! x (+ x 1)))))
+|#
+; The first, second, and fifth options would still be possible, with ouputs of 101, 121, and 100.
