@@ -655,3 +655,15 @@ If the value of the a connector is ever forgotten, then the multiplier will have
   (let ((z (make-connector)))
     (constant x z)
     z))
+
+
+
+; Exercise 3.38 - Time chart drawings in LiquidText
+#|
+Peter -> Paul -> Mary: Balance = $45
+Peter -> Mary -> Paul: Balance $35
+Paul -> Peter -> Mary: Balance = $45
+Paul -> Mary -> Peter: Balance = %50
+Mary -> Peter -> Paul: $40
+Mary -> Paul -> Peter: $40
+|#
