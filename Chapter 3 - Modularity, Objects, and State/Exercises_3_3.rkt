@@ -544,3 +544,114 @@ A multiplier should take 3 connectors - here one connector is being passed twice
 If the value of the a connector is ever forgotten, then the multiplier will have two empty slots (m1 and m2) and will not
   be able to calculate the third value appropriately.
 |#
+
+
+
+; Exercise 3.35
+(define (squarer a b)
+  (define (process-new-value)
+    (if (has-value? b)
+        (if (< (get-value b) 0)
+            (error "square less than 0: SQUARER"
+                   (get-value b))
+            (set-value! a (sqrt (get-value b)) me))
+        (if (has-value? a)
+            (set-value! b (* (get-value a) (get-value a)) me))))
+  (define (process-forget-value)
+    (forget-value! a me)
+    (forget-value! b me)
+    (process-new-value))
+  (define (me request)
+    (cond ((eq? request 'I-have-a-value) (process-new-value))
+          ((eq? request 'I-lost-my-value) (process-forget-value))
+          (else (error "Unknown request: SQUARER" request))))
+  (connect a me)
+  (connect b me)
+  me)
+
+
+
+; Exercise 3.36 - solution in LiquidText
+
+
+
+; Exercise 3.37
+(define (c- x y)
+  (let ((z (make-connector)))
+    (subber x y z)
+    z))
+(define (subber a1 a2 dif)
+  (define (process-new-value)
+    (cond ((and (has-value? a1) (has-value? a2))
+           (set-value! dif
+                       (- (get-value a1) (get-value a2))
+                       me))
+          ((and (has-value? a1) (has-value? dif))
+           (set-value! a2
+                       (- (get-value a1) (get-value dif))
+                       me))
+          ((and (has-value? a2) (has-value? dif))
+           (set-value! a1
+                       (+ (get-value dif) (get-value a1))
+                       me))))
+  (define (process-forget-value)
+    (forget-value! dif me)
+    (forget-value! a1 me)
+    (forget-value! a2 me)
+    (process-new-value))
+  (define (me request)
+    (cond ((eq? request 'I-have-a-value) (process-new-value))
+          ((eq? request 'I-lost-my-value) (process-forget-value))
+          (else (error "Unknown request: SUBBER" request))))
+  (connect a1 me)
+  (connect a2 me)
+  (connect dif me)
+  me)
+(define (c* x y)
+  (let ((z (make-connector)))
+    (multiplier x y z)
+    z))
+(define (c/ x y)
+  (let ((z (make-connector)))
+    (divider x y z)
+    z))
+(define (multiplier m1 m2 quotient)
+  (define (process-new-value)
+    (cond ((and (and (has-value? m1) (= (get-value m1) 0))  ; 0/0
+                (and (has-value? m2) (= (get-value m2) 0)))
+           (error ("Indeterminate division: DIVIDER" m1 m2)))
+          ((and (has-value? m1)  ; 0/x
+                (= (get-value m1) 0)
+                (has-value? m2))
+           (set-value! quotient 0 me))
+          ((and (has-value? m2) (= (get-value m2) 0))  ; x/0
+           (error ("Undefined division: DIVIDER" m1 m2)))
+          ((and (has-value? m1) (has-value? m2))
+           (set-value! quotient
+                       (/ (get-value m1) (get-value m2))
+                       me))
+          ((and (has-value? m1) (has-value? quotient))
+           (set-value! m2
+                       (/ (get-value m1) (get-value quotient))
+                       me))
+          ((and (has-value? m2) (has-value? quotient))
+           (set-value! m1
+                       (* (get-value quotient) (get-value m2))
+                       me))))
+  (define (process-forget-value)
+    (forget-value! quotient me)
+    (forget-value! m1 me)
+    (forget-value! m2 me)
+    (process-new-value))
+  (define (me request)
+    (cond ((eq? request 'I-have-a-value) (process-new-value))
+          ((eq? request 'I-lost-my-value) (process-forget-value))
+          (else (error "Unknown request: MULTIPLIER"
+                       request))))
+  (connect m1 me)
+  (connect m2 me)
+  (connect product me))
+(define (cv x)
+  (let ((z (make-connector)))
+    (constant x z)
+    z))
