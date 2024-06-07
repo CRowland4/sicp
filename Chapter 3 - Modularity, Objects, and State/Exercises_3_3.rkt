@@ -695,8 +695,30 @@ Mary -> Paul -> Peter: $40
 ; 4 - P1 accesses x twice, then P2 accesses x three times, then P1 sets x to 100, and P2 sets x to 1,000
 ; 5 - P1 accesses x twice, then P2 accesses x three times, then P2 sets x to 1,000, and P1 sets x to 100
 
+#|
 (define x 10)
 (define s (make-serializer))
 (parallel-execute (s (lambda () (set! x (* x x))))
                   (s (lambda () (set! x (* x x x)))))
+|#
 ; After this serialization, only P1 then P2, or P2 then P1 can be run, both giving a final result of 1,000,000
+
+
+
+; Exercise 3.41
+#|
+The purpose of serializing procedures is so that there aren't any unwanted consequences from interleaving parts of a
+  procedure that would access the same account (in this case). So the question we need to ask is, are there any unwanted
+  consequences of having the balance procedure interleaved with withdraw or deposit?
+The possible situations without serialization of the balance procedure are this:
+  We could have withdraw access balance, then the balance procedure access balance, then withdraw set balance, and then
+    technically the user that called the balance procedure would be shown a balance greater than the actual balance now that
+    withdraw has completed. While not 100% ideal, it's the same thing that would happen if the person that called balance
+    had accessed the account balance just a few seconds earlier - balance completes, showing the user a balance, then
+    someone withdraws money, and the balance is no longer valid.
+  The same thing could happen with deposit, except now the balance would show a smaller amount to the user that accessed
+    the balance. But again, this exact same situation could happen without interleaving.
+There aren't really any big negative consequences to having the balance procedure un-serialized, but it seems just a bit
+  cleaner to me, even if it's not necessary since the balanace procedure doesn't actually change the value of the balance
+  variable based on a previously-read value for that variable.
+|#
