@@ -398,7 +398,8 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
 
 
 
-; Exercise 3.28
+; Exercise 3.28 - commented out so the get-signal, that isn't defined here doesn't throw an error
+#|
 (define (or-gate w1 w2 output)
   (define (or-action-procedure)
     (let ((new-value
@@ -413,6 +414,7 @@ Defining memo-fib to just be (memoize fib) tould mean that memo-fib recursively 
   (if (or (= x 1) (= y 1))
       1
       0))
+|#
 
 
 
@@ -771,4 +773,23 @@ c.) We can think of the "total of all accounts" as it's own value, call it T, wh
 
 d.) In LiquidText
       
+|#
+
+
+
+; Exercise 3.44
+#|
+Ben Bitdiddle is right - as long as the account mechanisms are serialized, this will work fine. The fundamental difference between this and the
+  exchange procedure is that the exchange procedure's outcome (the final amount in the account) depeneded on the balance of the account at the
+  time of the initial "access" used to calculate the difference. The balance was then read more times within the withdraw and deposit procedures.
+
+In this transfer procedure, the amount being withdrawn and deposited is independant of the current account balance. In other words, the final state
+  of an account doesn't depend on it's own current state that must be read separately from/outside of the serialized processes.
+|#
+
+; Exercise 3.45
+#|
+With this method, the serialized procedures, for both accounts, would contain withdraw, deposit, and exchange. But deposit and withdraw are used
+  *within* exchange, meaning that they would never execute since the procedure that calls them, also being serialized, would need to finish first.
+  But, of course, exchange can't finish until deposite and withrdraw are both called, so everything would just lock up.
 |#
