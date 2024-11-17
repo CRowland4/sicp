@@ -915,9 +915,23 @@ This is a note to convince myself that (serializer1 (serializer2 exchange)) is i
 |#
 
 
-    
-               
-                   
+
+; Exercise 3.49
+#|
+Consider some variant of an exchange procedure where you enter two account numbers whose funds are to be withdrawn and then
+  the combined sum deposited in a third account. But the third account is based on some calculation involving the sum of
+  the initial accounts' funds. Suppose we call this procedure with accounts A and B, so that the mutexes are acquired for
+  both of these accounts. Then suppose we also call this procedure with accounts C and D, so that both of the locks for
+  those accounts are acquired.
+
+If the A/B procedure determines that the account into which the total amount will be deposited is D, it will not be able
+  to acquire the lock for account D until the C/D procedure finishes. But if the C/D procedure determines that the third
+  account to receive the funds is A, the C/D process won't be able to finish until the A/B process is finsihed, resulting
+  in a deadlock.
+
+The deadlock-avoidance mechanism described in the previous problem does not work here, because processes A/B and C/D are two
+  different instances of the same process, and therefore the mechanism could not be applied accross all four initial accounts.
+|#
                  
     
 
