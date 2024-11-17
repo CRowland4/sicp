@@ -771,8 +771,7 @@ c.) We can think of the "total of all accounts" as it's own value, call it T, wh
       Since each exchange operation subtracts the same amount from one account that it adds to another, and we know that operations on individual
       accounts are reliable, we know that T will remain unchanged.
 
-d.) In LiquidText
-      
+d.) In LiquidText   
 |#
 
 
@@ -787,9 +786,75 @@ In this transfer procedure, the amount being withdrawn and deposited is independ
   of an account doesn't depend on it's own current state that must be read separately from/outside of the serialized processes.
 |#
 
+
+
 ; Exercise 3.45
 #|
 With this method, the serialized procedures, for both accounts, would contain withdraw, deposit, and exchange. But deposit and withdraw are used
   *within* exchange, meaning that they would never execute since the procedure that calls them, also being serialized, would need to finish first.
   But, of course, exchange can't finish until deposite and withrdraw are both called, so everything would just lock up.
 |#
+
+
+
+; Exercise 3.46 - In LiquidText
+
+
+
+; Exercise 3.47
+; a.) In terms of mutexes
+(define (make-semaphore-mutexes n)
+  (let ((mutex (make-mutex))
+        (taken 0))
+    (define (the-semaphore m)
+      (cond ((eq? m 'acquire)
+             (mutex 'acquire)
+             (if (< taken n)
+                 (begin
+                   (set! taken (+ taken 1))
+                   (mutex 'release))
+                 (begin
+                   (mutex 'release)
+                   (the-semaphore 'acquire))))
+            ((eq? m 'release)
+             (mutex 'acquire)
+             (set! taken (- taken 1))
+             (mutex 'release))))
+    the-semaphore))
+
+; b.) In terms of test-and-set! operations
+(define (make-semaphore-test-and-set n)
+  (let ((cell (list false))
+        (taken 0))
+    (define (acquire)
+      (cond ((test-and-set! cell) (acquire))
+            ((< taken n)
+             (set! taken (+ taken 1))
+             (clear! cell))
+            (else
+             (clear! cell)
+             (acquire))))
+    (define (release)
+      (cond ((test-and-set! cell) (release))
+            ((> taken 0)
+             (set! taken (- taken 1))
+             (clear! cell))
+            (else
+             (clear! cell))))
+    (define (dispatch m)
+      (cond ((= m 'acquire) (acquire))
+            ((= m 'release) (release))
+            (else (error "Bad semaphore command"))))
+    dispatch))
+    
+               
+                   
+                 
+    
+
+
+
+
+
+
+             
