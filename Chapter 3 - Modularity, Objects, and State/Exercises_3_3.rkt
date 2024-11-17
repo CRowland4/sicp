@@ -846,6 +846,75 @@ With this method, the serialized procedures, for both accounts, would contain wi
             ((= m 'release) (release))
             (else (error "Bad semaphore command"))))
     dispatch))
+
+
+
+; Exercise 3.48
+#|
+(define (exchange account1 account2)
+  (let ((difference (- (account1 'balance)
+                       (account2 'balance))))
+    ((account1 'withdraw) difference)
+    ((account2 'deposit) difference)))
+|#
+(define (make-account balance number)  ; Note, this would leave ID management and non-duplication up to the user
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (account-number)
+    number)
+  (let ((balance-serializer (make-serializer)))
+    (define (dispatch m)
+      (cond ((eq? m 'withdraw) withdraw)
+            ((eq? m 'deposit) deposit)
+            ((eq? m 'balance) balance)
+            ((eq? m 'account-number) account-number)
+            ((eq? m 'serializer) balance-serializer)
+            (else (error "Unknown request: MAKE-ACCOUNT" m))))
+    dispatch))
+
+(define (serialized-exchange account1 account2)
+  (let ((serializer1 (account1 'serializer))
+        (serializer2 (account2 'serializer)))
+    (cond (((account1 'account-number) < (account2 'account-number))
+           ((serializer1 (serializer2 exchange)) account1 account2))
+          (((account2 'account-number) < (account1 'account-number))
+           ((serializer2 (serializer1 exchange)) account1 account2)))))
+
+#|
+This works because there is a sequence that must be followed. In the example of two exchanges happening that share
+  an account, such as a1 -> a2 and a2 -> a1, the second process will not be able to begin until it has the locks for a1
+  (assuming that a1 has a smaller account ID than a2). Since the entire exchange process is serialized, this means that
+  only one exchange at a time per account can be happening. So in the case of a1 -> a2 and a2 - a1 being called at the same
+  time, one of the exchanges would finish completley before the other one begins. This does not however, prevent a set of
+  exchanges like a1 -> a2 and a3 -> a4 from happening concurrently.
+
+This is a note to convince myself that (serializer1 (serializer2 exchange)) is in fact the correct order to call the
+  serializers, given that account ID 1 is smaller than account ID 2. The site I reference for solution checking and
+  help contains solutions that have both orders. While technically it wouldn't matter, since the important thing here is
+  that there is some order that must be obeyed, and hence "largest ID first" and "smallest ID first" would accomplish
+  the same thing, I nonetheless wanted to make sure my understanding was correct. 
+
+
+(serialize2 exchange):
+  - acquire mutex 2
+  - exchange
+  - release mutex 2
+
+(serialize1 (serialize2 exchange)): - mutex 1 does indeed get acquired first
+  - acquire mutex 1
+    - acquire mutex 2
+    - exchange
+    - release mutex 2
+  - release mutex 1
+|#
+
+
     
                
                    
