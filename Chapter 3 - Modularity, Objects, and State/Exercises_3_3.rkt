@@ -722,3 +722,53 @@ There aren't really any big negative consequences to having the balance procedur
   cleaner to me, even if it's not necessary since the balanace procedure doesn't actually change the value of the balance
   variable based on a previously-read value for that variable.
 |#
+
+
+
+; Exercise 3.42
+#|
+THIS IS MY INITIAL, INCORRECT ANSWER
+The difference here is that the protected procedure is only being called once, at the creation of the account. So the list
+  of operations in the serializer only has two procedures in it, withdraw and deposit, in that order. This would prevent withdraw
+  and deposit from interleaving with each other, but it wouldn't prevent withdraw calls from interleaving with each other or deposit
+  calls from interleaving with each other.
+
+*After checking my answer against other answers online, it seems that I was wrong. I had imagine a serializer as essentially a queue,
+  where calling a serialized procedure adds that procedure to the queue. Once the procedure is executed, it's removed from the queue.
+  So if we had procedures A1, A2, and A3 in one serializeer and procedures B1, B2, and B3 in another serializer, the As could run
+  concurrently with the Bs, but an A couldn't run at the same time as another A, and a B couldn't run at the same time as another B.
+  I had pictured the serializer of this problem being the list (withdraw deposit), and erroneously answered as if each call to
+  withdraw or deposit from the account would return an *instance of these procedures that aren't in the queue. But that's not what
+  happens - THE procedure is actually returned, and the book has this to say about serializers a few pages above:
+
+    "...serialization creates distinguished sets of procedures such that only one execution of a procedure in each serialized set is
+     is permitted to happen at a time. If some procedure in the set is being executed, then a process that attempts to execute any
+     procedure in the set will be forced to wait until the first execution has finished."
+
+  Even if a two calls to a procedure are being executed concurrently, the procedure being used by both processes is at the same place
+    in memory, so the serializer could check if it's being executed. It's not a copy of the procedure somewhere else in memory like I
+    originally imagined.
+  So ultimately this is a safe change to make. I may have more notes to add here once I actually see the implementation of make-serializer
+    in the next section.
+|#
+
+
+
+; Exercise 3.43
+#|
+a.) Induction: If after n exchanges the balances in the three accounts are (10, 20, 30) in some order, then after one more exchange, the
+      balances will still be (10, 20, 30) in some order.
+    With initial balances of (10, 20, 30) after 0 exchanges, doing one exchange leaves you with (10, 20, 30) in the accounts, in some order.
+      So by induction, the original hypothesis from the problem is true. It's not as rigorous as a math proof would be but the idea still works.
+
+b.) In LiquidText
+
+c.) We can think of the "total of all accounts" as it's own value, call it T, where T is comproside of the balances of the three accounts:
+      A + B + C. Therefore, the operations that affect those three accounts are the only operations that can affect T. But for each of the
+      three accounts, the set of operations that can affect that account (the account's withdraw and deposite procedures) are serialized.
+      Since each exchange operation subtracts the same amount from one account that it adds to another, and we know that operations on individual
+      accounts are reliable, we know that T will remain unchanged.
+
+d.) In LiquidText
+      
+|#

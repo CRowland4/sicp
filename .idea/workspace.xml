@@ -5,8 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="04ae212f-5221-42ee-a3ee-de1958f52258" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Chapter 2 - Building Abstractions with Data/Exercises_2_3.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Chapter 2 - Building Abstractions with Data/Exercises_2_3.rkt" beforeDir="false" afterPath="$PROJECT_DIR$/Chapter 2 - Building Abstractions with Data/Exercises_2_3.rkt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Chapter 3 - Modularity, Objects, and State/Exercises_3_3.rkt" beforeDir="false" afterPath="$PROJECT_DIR$/Chapter 3 - Modularity, Objects, and State/Exercises_3_3.rkt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +58,7 @@
       <workItem from="1714133310413" duration="4000" />
       <workItem from="1714262445554" duration="13000" />
       <workItem from="1715283832836" duration="9000" />
+      <workItem from="1723119061903" duration="11000" />
     </task>
     <servers />
   </component>
