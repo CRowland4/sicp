@@ -255,7 +255,6 @@ z2  ; ((a b) a b)
 
 
 ; Procedure-based pairs that also implement set-car! and set-cdr!
-#| Commented out so it doesn't interfere with normal cons used elsewhere
 (define (cons x y)
   (define (set-x! v) (set! x v))
   (define (set-y! v) (set! y v))
@@ -274,7 +273,6 @@ z2  ; ((a b) a b)
   ((z 'set-car!) new-value) z)
 (define (set-cdr! z new-value)
   ((z 'set-cdr!) new-value) z)
-|#
 
 
 
