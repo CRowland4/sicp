@@ -26,6 +26,15 @@
       (stream-car s)
       (stream-ref (stream-cdr s) (- n 1))))
 
+(define (stream-filter pred stream)
+  (cond ((stream-null? stream) the-empty-stream)
+        ((pred (stream-car stream))
+         (cons-stream (stream-car stream)
+                      (stream-filter
+                       pred
+                       (stream-cdr stream))))
+        (else (stream-filter pred (stream-cdr stream)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -97,6 +106,261 @@ which makes since because x is a stream, and has already gone through the first 
 
 
 
+; Exercise 3.52
+(define sum 0)
+(define (accum x)
+  (set! sum (+ x sum)) sum)
+(define seq
+  (stream-map accum
+              (stream-enumerate-interval 1 20)))
+(define y (stream-filter even? seq))
+(define z
+  (stream-filter (lambda (x) (= (remainder x 5) 0))
+                 seq))
+
+(stream-ref y 7)
+(display-stream z)
+
+#| a)
+
+; 1
+(stream-ref y 7)
+
+; 2
+(stream-ref (stream-filter even? seq)
+            7)
+
+; 3
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (stream-enumerate-interval 1 20)))
+            7)
+
+; 4
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (cons-stream
+                                        1
+                                        (stream-enumerate-interval 2 20))))
+            7)
+
+; 5
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (1 . (delay (stream-enumerate-interval 2 20)))))
+            7)
+
+; 6
+(stream-ref (stream-filter even?
+                           ((accum 1) . (delay (stream-map accum
+                                                           (stream-cdr
+                                                            (1 . (delay (stream-enumerate-interval 2 20))))))))
+            7)
+
+; 7 -- after this step, sum is 1
+(stream-ref (stream-filter even?
+                           ((accum 1) . (delay (stream-map accum
+                                                           (stream-enumerate-interval 2 20)))))
+            7)
+
+; 8
+(stream-ref (stream-filter even?
+                           (1 . (delay (stream-map accum
+                                                   (stream-enumerate-interval 2 20)))))
+            7)
+
+; 9
+(stream-ref (stream-filter even? (stream-cdr (1 . (delay (stream-map accum
+                                                   (stream-enumerate-interval 2 20))))))
+            7)
+
+; 10 - This is identical to step 3, but now our enumerate-interval has been incremented by 1
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (stream-enumerate-interval 2 20)))
+            7)
+
+; 11
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (cons-stream
+                                        2
+                                        (stream-enumerate-interval 3 20))))
+            7)
+
+; 12
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (2 . (delay (stream-enumerate-interval 3 20)))))
+            7)
+
+; 13
+(stream-ref (stream-filter even?
+                           (cons-stream (accum 2)
+                                        (stream-map accum
+                                                    (stream-cdr (2 . (delay (stream-enumerate-interval 3 20)))))))
+            7)
+
+; 14 - after this step, sum is 3
+(stream-ref (stream-filter even?
+                           ((accum 2) . (delay (stream-map accum
+                                                           (stream-eneumerate-interval 3 20)))))
+            7)
+
+; 15
+(stream-ref (stream-filter even?
+                           (3 . (delay (stream-map accum
+                                                   (stream-enumerate-interval 3 20)))))
+            7)
+
+; 16
+(stream-ref (stream-filter even?
+                           (stream-cdr (delay (stream-map accum
+                                                   (stream-enumerate-interval 3 20)))))
+            7)
+
+; 17
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (stream-enumerate-interval 3 20)))
+            7)
+
+; Now I see the pattern and we can start to generalize:
+; <sum> -- <low part of enumerate-interval>
+; 6 -- 4   This is actually the first even number, as the previous 2 were 1 and 3
+; 10 -- 5
+; 15 -- 6
+; 21 -- 7
+; 28 -- 8
+; 36 -- 9
+; 45 -- 10
+; 55 -- 11
+; 66 -- 12
+; 78 -- 13
+; 91 -- 14
+; 105 -- 15
+; 120 -- 16
+; 136 -- 17
+; 153 -- 18
+; 171 -- 19
+; 190 -- 20
+; 210 -- 21    Finished, because 21 > 20
+
+; So the value of sum is 210, and the 7th indexed element of the filter process is 136
+
+; Turns out I was right about the 7th index being 136, but from step 1 I started simplifying wrong because
+;  I started evaluating y befor substituting y and 7 into stream-ref, so I calculated sum incorrectly. Corrected version below.
+
+; 1
+(stream-ref y 7)
+
+; 2
+(stream-ref (stream-cdr y)
+            6)
+
+; 3
+(stream-ref (stream-cdr (stream-cdr y))
+            5)
+
+; 4
+(stream-ref (stream-cdr (stream-cdr (stream-cdr y)))
+            4)
+
+; 5
+(stream-ref (stream-cdr (stream-cdr (stream-cdr (stream-cdr y))))
+            3)
+
+; 6
+(stream-ref (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr y)))))
+            2)
+
+; 7
+(stream-ref (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr y))))))
+            1)
+
+; 8
+(stream-ref (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr y)))))))
+            0)
+
+; 9
+(stream-car (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr y))))))))
+
+; 10
+(car (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr (stream-cdr y))))))))
+
+; And now I see my mistake - in my initial set of steps, I didn't actually begin incorrectly. Steps 1-17 are correct,
+;   as are this most recent set of steps 1-11. The mistake was in my comment that I see the pattern. What I had seen
+;   was the pattern for odd numbers going through the filter check, but if I had gone through one more iteration,
+;   I would have hit the first even number 6. This would have resulted in a pair being returned from the call to
+;   filter, rather than just the result of another call to filter. So below I pic up where I left off from the
+;   initial set of steps.
+
+; 17
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (stream-enumerate-interval 3 20)))
+            7)
+
+; ... 18
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (cons-stream
+                                        3
+                                        (stream-enumerate-interval 4 20))))
+            7)
+
+; 19
+(stream-ref (stream-filter even?
+                           (stream-map accum
+                                       (3 . (delay (stream-enumerate-interval 4 20)))))
+            7)
+
+; 20 - sum is 6 after this step
+(stream-ref (stream-filter even?
+                           (cons-stream (accum 3)
+                                        (stream-map accum
+                                                    (stream-enumerate-interval 4 20))))
+            7)
+
+; 21
+(stream-ref (stream-filter even?
+                           (6 . (stream-map accum
+                                            (stream-enumerate-interval 4 20))))
+            7)
+
+; 22 - and this is where things change, because the even? predicate will return true now
+(stream-ref (cons-stream 6
+                         (stream-filter
+                          even?
+                          (delay (stream-map accum
+                                            (stream-enumerate-interval 4 20)))))
+            7)
+
+; 23 - There is not a delay behind the next call to stream-filter, so instead of doing another round of the filter,
+;        we back up even further and do a round of stream-ref, which I didn't do before incorrectly generalizing in
+;        in my first set of steps.
+(stream-ref (6 . (delay (stream-filter
+                         even?
+                         (delay (stream-map accum
+                                            (stream-enumerate-interval 5 20))))))
+            7)
+
+; 24
+(stream-ref (stream-cdr (6 . (delay (stream-filter
+                         even?
+                         (delay (stream-map accum
+                                            (stream-enumerate-interval 5 20)))))))
+            6)
+
+; Now it's clear to see that ever even number passing throug filter will decrement the ref index by one, meaning the
+;  process will be stopped after the 7th indexed even number, which will subsequently stop the accumulation. So it makes
+;  sense now that sum will only be 136 after this process, not 210.
+
+
+a)
+|#
+; 1
+(display-stream z)
 
 
 
