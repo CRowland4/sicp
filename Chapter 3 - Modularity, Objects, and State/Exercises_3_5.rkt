@@ -35,6 +35,15 @@
                        (stream-cdr stream))))
         (else (stream-filter pred (stream-cdr stream)))))
 
+(define (stream-for-each proc s)
+  (if (stream-null? s)
+      'done
+      (begin (proc (stream-car s))
+             (stream-for-each proc (stream-cdr s)))))
+
+(define (display-stream s)
+  (stream-for-each display-line s))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -291,7 +300,7 @@ which makes since because x is a stream, and has already gone through the first 
 ; And now I see my mistake - in my initial set of steps, I didn't actually begin incorrectly. Steps 1-17 are correct,
 ;   as are this most recent set of steps 1-11. The mistake was in my comment that I see the pattern. What I had seen
 ;   was the pattern for odd numbers going through the filter check, but if I had gone through one more iteration,
-;   I would have hit the first even number 6. This would have resulted in a pair being returned from the call to
+;   I would have hit the first even number: 6. This would have resulted in a pair being returned from the call to
 ;   filter, rather than just the result of another call to filter. So below I pic up where I left off from the
 ;   initial set of steps.
 
@@ -357,10 +366,58 @@ which makes since because x is a stream, and has already gone through the first 
 ;  sense now that sum will only be 136 after this process, not 210.
 
 
-a)
-|#
+b)
+
 ; 1
 (display-stream z)
+
+; 2
+(stream-for-each display-line z)
+
+; 3
+(stream-for-each display-line
+                 (stream-filter (lambda (x) (= (remainder x 5) 0))
+                                seq))
+
+; 4
+(stream-for-each display-line
+                 (stream-filter (lambda (x) (= (remaiinder x 5) 0))
+                                (stream-map accum
+                                            (stream-enumerate-interval 1 20))))
+
+; Now there's no 7th index (or any index) that will stop the process at any point, so the enumeration will actually happen through 20.
+;  But since in the problem this is called after (stream-ref y 7), the sum will start at 136, rather than at 0. So once again the numbers
+;  will be as follows:
+; <sum> -- <low part of enumerate-interval>
+; 136 -- 1
+; 137 -- 2
+; 139 -- 3
+; 142 -- 4
+; 146 - 5
+; 151 - 6
+; 157 - 7
+; 164 - 8
+; 172 - 9
+; 181 - 10
+; 191 - 11
+; 202 - 12
+; 214 - 13
+; 227 - 14
+; 241 - 15
+; 256 - 16
+; 272 - 17
+; 289 - 18
+; 307 - 19
+; 326 - 20
+; 346 - 21
+
+; No numbers here are divisible by 5, so nothing will be printed to the screen, and the sum will be 346;
+
+Note that these numbers assume we are NOT using the memoization. With memoization, the two calls would not both add to sum,
+  because the values generated for the stream by the first call would be stored, and when called, those values would be returned
+  without executing the delayed procedure and adding to sum. With memoization, 10, 15, 45, 55, 105, 120, 190, and 210 would be
+  printed to the screen, and sum would be 210.
+|#
 
 
 
