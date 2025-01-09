@@ -44,6 +44,8 @@
 (define (display-stream s)
   (stream-for-each display-line s))
 
+(define (add-streams s1 s2) (stream-map-generalized + s1 s2))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -389,10 +391,10 @@ b)
 ;  But since in the problem this is called after (stream-ref y 7), the sum will start at 136, rather than at 0. So once again the numbers
 ;  will be as follows:
 ; <sum> -- <low part of enumerate-interval>
-; 136 -- 1
-; 137 -- 2
-; 139 -- 3
-; 142 -- 4
+; 136 - 1
+; 137 - 2
+; 139 - 3
+; 142 - 4
 ; 146 - 5
 ; 151 - 6
 ; 157 - 7
@@ -417,9 +419,17 @@ Note that these numbers assume we are NOT using the memoization. With memoizatio
   because the values generated for the stream by the first call would be stored, and when called, those values would be returned
   without executing the delayed procedure and adding to sum. With memoization, 10, 15, 45, 55, 105, 120, 190, and 210 would be
   printed to the screen, and sum would be 210.
+
+I believe I also could have missed something here since I did not consider the calculation steps that would be taken upon
+  defining the structures used for the problem. While that will change the value of the outcome, it won't change the mechanics
+  of the problem, so I don't feel the need to redo the whole thing to correct that bit
 |#
 
 
+
+; Exercise 3.53
+(define s (cons-stream 1 (add-streams s s)))
+; This stream will generate: 1, 2, 4, 8, 16 ...
 
 
 

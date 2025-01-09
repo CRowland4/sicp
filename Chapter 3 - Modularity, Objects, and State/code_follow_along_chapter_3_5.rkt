@@ -54,6 +54,14 @@
 
 (define (divides? a b)
   (= (remainder b a) 0))
+
+(define (stream-map-generalized proc . argstreams)
+  (if (null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map-generalized
+              (cons proc (map stream-cdr argstreams))))))
       
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -134,3 +142,78 @@
                  (set! already-run? true)
                  result)
           result))))
+
+
+
+; Stream of positive integers - example of an infinite stream
+(define (integers-starting-from n)
+  (cons-stream n (integers-starting-from (+ n 1))))
+(define integers-from-one (integers-starting-from 1))
+
+; Stream of integers not divisible by 7
+(define (divisible? x y) (= (remainder x y) 0))
+(define no-sevens
+  (stream-filter (lambda (x) (not (divisible? x 7)))
+                 integers-from-one))
+
+; Stream of Fibonacci numbers
+(define (fibgen a b) (cons-stream a (fibgen b (+ a b))))
+(define fibs (fibgen 0 1))
+
+
+
+; Sieve of Eratosthenes
+(define (sieve stream)
+  (cons-stream
+   (stream-car stream)
+   (sieve (stream-filter
+           (lambda (x)
+             (not (divisible? x (stream-car stream))))
+           (stream-cdr stream)))))
+(define primes (sieve (integers-starting-from 2)))
+
+
+
+; Infinite stream of ones
+(define ones (cons-stream 1 ones))
+
+; Element-wise sum of two given streams
+(define (add-streams s1 s2) (stream-map-generalized + s1 s2))
+
+; Alternate definition of integers
+(define integers
+  (cons-stream 1 (add-streams ones integers)))
+
+; Alternate definition of fibs
+(define fibs-alternate
+  (cons-stream
+   0
+   (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+
+
+
+; Scaling a stream
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor))
+              stream))
+(define double (cons-stream 1 (scale-stream double 2)))
+
+
+
+; Alternate primes
+(define primes-alternate
+  (cons-stream
+   2
+   (stream-filter alternate-prime? (integers-starting-from 3))))
+(define (alternate-prime? n)
+  (define (iter ps)
+    (cond ((> (square (stream-car ps)) n) true)
+          ((divisible? n (stream-car ps)) false)
+          (else (iter (stream-cdr ps)))))
+  (iter primes-alternate))
+
+
+
+
+
+
