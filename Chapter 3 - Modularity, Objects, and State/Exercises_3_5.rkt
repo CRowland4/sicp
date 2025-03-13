@@ -46,6 +46,11 @@
 
 (define (add-streams s1 s2) (stream-map-generalized + s1 s2))
 
+(define ones (cons-stream 1 ones))
+
+(define integers
+  (cons-stream 1 (add-streams ones integers)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -431,6 +436,14 @@ I believe I also could have missed something here since I did not consider the c
 (define s (cons-stream 1 (add-streams s s)))
 ; This stream will generate: 1, 2, 4, 8, 16 ...
 
+
+
+; Exercise 3.54
+;(define (add-streams s1 s2)
+;  (stream-map + s1 s2))
+
+(define (mul-streams s1 s2) (stream-map-generalized * s1 s2))
+(define factorials (cons-stream 1 (mul-streams factorials (add-streams integers ones))))
 
 
 
