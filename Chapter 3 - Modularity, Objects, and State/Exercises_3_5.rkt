@@ -439,14 +439,13 @@ I believe I also could have missed something here since I did not consider the c
 
 
 ; Exercise 3.54
-;(define (add-streams s1 s2)
-;  (stream-map + s1 s2))
-
 (define (mul-streams s1 s2) (stream-map-generalized * s1 s2))
-(define factorials (cons-stream 1 (mul-streams factorials (add-streams integers ones))))
+(define factorials
+  (cons-stream 1 (mul-streams factorials (add-streams integers ones))))
 
 
 
-
-
-
+; Exercise 3.55
+(define (partial-sums s)
+  (add-streams (cons-stream 0 (partial-sums s)) s))
+  
