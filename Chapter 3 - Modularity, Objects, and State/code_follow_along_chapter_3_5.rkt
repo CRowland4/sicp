@@ -188,7 +188,7 @@
 (define fibs-alternate
   (cons-stream
    0
-   (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+   (cons-stream 1 (add-streams (stream-cdr fibs-alternate) fibs-alternate))))
 
 
 

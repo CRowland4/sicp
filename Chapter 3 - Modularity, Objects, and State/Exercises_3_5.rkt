@@ -51,6 +51,10 @@
 (define integers
   (cons-stream 1 (add-streams ones integers)))
 
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor))
+              stream))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -448,4 +452,236 @@ I believe I also could have missed something here since I did not consider the c
 ; Exercise 3.55
 (define (partial-sums s)
   (add-streams (cons-stream 0 (partial-sums s)) s))
-  
+
+
+
+; Exercise 3.56
+(define (merge s1 s2)
+  (cond ((stream-null? s1) s2)
+        ((stream-null? s2) s1)
+        (else
+         (let ((s1car (stream-car s1))
+               (s2car (stream-car s2)))
+           (cond ((< s1car s2car)
+                  (cons-stream
+                   s1car
+                   (merge (stream-cdr s1) s2)))
+                 ((> s1car s2car)
+                  (cons-stream
+                   s2car
+                   (merge s1 (stream-cdr s2))))
+                 (else
+                  (cons-stream
+                   s1car
+                   (merge (stream-cdr s1)
+                          (stream-cdr s2)))))))))
+
+(define S (cons-stream 1 (merge (scale-stream S 2) (merge (scale-stream S 3) (scale-stream S 5)))))
+
+
+
+; Exercise 3.57
+#|
+Reference procedures
+(define fibs
+  (cons-stream
+   0
+   (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+
+(define (stream-cdr stream) (force (cdr stream)))
+
+(define (stream-map-generalized proc . argstreams)
+  (if (null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map-generalized
+              (cons proc (map stream-cdr argstreams))))))
+
+(define (add-streams s1 s2) (stream-map-generalized + s1 s2))
+
+(define (stream-ref s n)
+  (if (= n 0)
+      (stream-car s)
+      (stream-ref (stream-cdr s) (- n 1))))
+
+(cons-stream a b) is (cons a (delay b))
+
+
+--- Calculating the 3rd (n = 3) Fibonacci, 1
+Fibs, expanded:
+
+(0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+
+Now we can start the calculation:
+(stream-ref fibs 3)
+
+-> (stream-ref
+       (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+       3)
+
+-> (stream-ref
+       (cons-stream 1 (add-streams (stream-cdr fibs) fibs))
+       2)
+
+-> (stream-ref
+       (1 . (delay (add-streams (stream-cdr fibs) fibs)))
+       2)
+
+-> (stream-ref
+       (add-streams (stream-cdr fibs) fibs)
+       1)
+
+-> (stream-ref
+       (add-streams
+           (cons-stream 1 (add-streams (stream-cdr fibs) fibs))
+           (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (add-streams
+           (1 . (delay (add-streams (stream-cdr fibs) fibs)))
+           (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (stream-map-generalized
+           +
+           (1 . (delay (add-streams (stream-cdr fibs) fibs)))
+           (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (cons-stream
+           (apply + (1 0))
+           (apply
+               stream-map-generalized
+               (cons +
+                     (add-streams (stream-cdr fibs) fibs)
+                     (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (cons-stream
+           1
+           (apply
+               stream-map-generalized
+               (cons +
+                     (add-streams (stream-cdr fibs) fibs)
+                     (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (1 . (delay (apply
+               stream-map-generalized
+               (cons +
+                     (add-streams (stream-cdr fibs) fibs)
+                     (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+       1)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +
+                 (add-streams (stream-cdr fibs) fibs)
+                 (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
+       0)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +
+                 (add-streams
+                      (1 . (add-streams (stream-cdr fibs) fibs))
+                      (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+                 (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +         
+                 (stream-map-generalized
+                      +
+                      (1 . (add-streams (stream-cdr fibs) fibs))
+                      (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs)))))
+                 (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +  
+                 (cons-stream
+                      (apply + (map stream-car
+                                    (1 . (add-streams (stream-cdr fibs) fibs))
+                                    (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))
+                      (apply stream-map-generalized
+                             (cons + (map stream-cdr
+                                          (1 . (add-streams (stream-cdr fibs) fibs))
+                                          (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))))
+                 (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +  
+                 (cons-stream
+                      (apply + (1 0))
+                      (apply stream-map-generalized
+                             (cons + (map stream-cdr
+                                          (1 . (add-streams (stream-cdr fibs) fibs))
+                                          (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))))
+                 (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-ref
+       (apply
+           stream-map-generalized
+           (cons +  
+                 (1 .
+                      (apply stream-map-generalized
+                             (cons + (map stream-cdr
+                                          (1 . (add-streams (stream-cdr fibs) fibs))
+                                          (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))))
+                 (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-ref
+       (stream-map-generalized
+           (+  
+            (1 . (apply stream-map-generalized
+                             (cons + (map stream-cdr
+                                          (1 . (add-streams (stream-cdr fibs) fibs))
+                                          (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))))
+            (1 . (delay (add-streams (stream-cdr fibs) fibs)))))
+       0)
+
+-> (stream-car (stream-map-generalized
+      (+  
+       (1 . (apply stream-map-generalized
+                             (cons + (map stream-cdr
+                                          (1 . (add-streams (stream-cdr fibs) fibs))
+                                          (0 . (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))))))
+       (1 . (delay (add-streams (stream-cdr fibs) fibs))))))
+
+-> (stream-car (cons-stream
+       (apply + (1 1))
+       .... rest doesn't matter cause we're taking cons-stream))
+
+-> 2, took 3 additions. But onoe of the additions was run twice (+ 1 0),
+      as a result of (delay (cons-stream 1 (add-streams (stream-cdr fibs) fibs))),
+      which would have been avoided with the memo-proc optimization, which reduces the
+      number of additions down to 2, or n - 2.
+
+      With memo-proc, to calculate Fib(n) we'll need n - 1 additions.
+      Without memo-proc, Fib(n) requires (Fib(n-1) + Fib(n-2)) calculations,
+      which turns into the classic brute-force fibonacci calculation, whose number
+      of additions increases exponentially.
+
+I made a mistake in this sequence of substitutions by not recognizing immediately that
+  a (delay (proc)) had been repeated, and I did it all by hand twice, accidentally demonstrating
+  why the memo optimization of delay is so useful.
+
+|#
