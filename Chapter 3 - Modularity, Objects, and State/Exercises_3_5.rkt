@@ -61,6 +61,23 @@
 (define (average x y)
   (/ (+ x y) 2))
 
+(define (euler-transform s)
+  (let ((s0 (stream-ref s 0))
+        (s1 (stream-ref s 1))
+        (s2 (stream-ref s 2)))
+    (cons-stream (- s2 (/ (square (- s2 s1))
+                          (+ s0 (* -2 s1) s2)))
+                 (euler-transform (stream-cdr s)))))
+
+(define (square x)
+  (* x x))
+
+(define (make-tableau transform s)
+  (cons-stream s (make-tableau transform (transform s))))
+
+(define (accelerated-sequence transform s)
+  (stream-map stream-car (make-tableau transform s)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -806,5 +823,19 @@ NOTE: From reading around other online solutions, it seems that the *reason* tha
       (stream-car (stream-cdr s))
       (stream-limit (stream-cdr s) t)))
 
-  
-  
+
+
+; Exercise 3.65
+(define (ln2-summands n)
+  (cons-stream (/ 1.0 n)
+               (stream-map - (ln2-summands (+ n 1)))))
+
+(define ln2-stream  ; Sequence 1
+  (scale-stream (partial-sums (ln2-summands 1)) 1))
+
+(euler-transform ln2-stream)  ; Sequence 2
+
+(accelerated-sequence euler-transform ln2-stream)  ; Sequence 3
+
+; Not sure what the book means by 'how rapidly do these sequences converge,
+;   but each converges faster than the previous, as expected.
