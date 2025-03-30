@@ -685,3 +685,49 @@ I made a mistake in this sequence of substitutions by not recognizing immediatel
   why the memo optimization of delay is so useful.
 
 |#
+
+
+
+; Exercise 3.58
+(define (expand num den radix)
+  (cons-stream
+   (quotient (* num radix) den)
+   (expand (remainder (* num radix) den) den radix)))
+(define test (expand 1 7 10))  ; Gives 1, 4, 2, 8, 5, 7, 1, 4, 2, 8, 5, 7, on a cycle
+(define test2 (expand 3 8 10))  ; Gives 3, 7, 5, then all 0s
+
+; This procedure is giving the decimal digits of the operation (num / den), in base radix
+
+
+
+; Exercise 3.59
+; a)
+(define (div-streams s1 s2) (stream-map-generalized / s1 s2))
+(define (integrate-series s)
+  (mul-streams s (div-streams ones integers)))
+
+; b)
+(define exp-series
+  (cons-stream 1 (integrate-series exp-series)))
+
+(define cosine-series (cons-stream 1 (integrate-series sine-series)))
+(define sine-series (cons-stream 0 (scale-stream -1 (integrate-series cosine-series))))
+
+
+
+; Exercise 3.60
+(define (mul-series s1 s2)
+  (cons-stream (* (stream-car s1)
+                  (stream-car s2))
+               (add-streams (scale-stream (stream-cdr s2)
+                                          (stream-car s1))
+                            (mul-streams (stream-cdr s1)
+                                         s2))))
+
+
+
+; Exercise 3.61
+
+
+  
+  
