@@ -721,13 +721,16 @@ I made a mistake in this sequence of substitutions by not recognizing immediatel
                   (stream-car s2))
                (add-streams (scale-stream (stream-cdr s2)
                                           (stream-car s1))
-                            (mul-streams (stream-cdr s1)
+                            (mul-series (stream-cdr s1)
                                          s2))))
 
 
 
 ; Exercise 3.61
-
+(define (invert-unit-series S)
+  (cons-stream 1
+               (scale-stream (mul-series S (invert-unit-series S))
+                             -1)))
 
   
   
