@@ -732,5 +732,19 @@ I made a mistake in this sequence of substitutions by not recognizing immediatel
                (scale-stream (mul-series S (invert-unit-series S))
                              -1)))
 
+
+
+; Exercise 3.62 - guide that I'm using to check my solutions against (wizardbook.wordpress.com) uses scale-stream and
+;                   standard division in his solution, I'm not sure why. I'm using this recent handful of problems as
+;                   more of a mental exercise than anything and am not terribly concerned with 100% accuracy, as I've
+;                   never been terribly fond of power series.
+(define (div-series s1 s2)
+  (if (eq? (stream-car s2) 0)
+      (display "Error! s2 starts with a 0 term")
+      (mul-series s1 (inert-unit-series s2))))
+
+(define tan-series (div-series sine-series cosine-series))
+
+
   
   
