@@ -55,6 +55,12 @@
   (stream-map (lambda (x) (* x factor))
               stream))
 
+(define (sqrt-improve guess x)
+  (average guess (/ x guess)))
+
+(define (average x y)
+  (/ (+ x y) 2))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -741,10 +747,64 @@ I made a mistake in this sequence of substitutions by not recognizing immediatel
 (define (div-series s1 s2)
   (if (eq? (stream-car s2) 0)
       (display "Error! s2 starts with a 0 term")
-      (mul-series s1 (inert-unit-series s2))))
+      (mul-series s1 (invert-unit-series s2))))
 
 (define tan-series (div-series sine-series cosine-series))
 
+
+
+; Exercise 3.63
+
+#|
+(define (stream-map proc s)
+  (if (stream-null? s)
+      the-empty-stream
+      (cons-stream (proc (stream-car s))
+                   (stream-map proc (stream-cdr s)))))
+
+
+|#
+; Original Version of sqrt-stream, with local variable <guesses>
+
+(define (sqrt-stream x)
+  (define guesses
+    (cons-stream
+     1.0
+     (stream-map (lambda (guess) (sqrt-improve guess x))
+                 guesses)))
+  guesses)
+
+#|
+Louis Reasoner's version of sqrt-stream, without local variable <guesses>
+
+(define (sqrt-stream x)
+  (cons-stream 1.0 (stream-map
+                    (lambda (guess)
+                      (sqrt-improve guess x))
+                    (sqrt-stream x))))
+
+In Louis Reasoner's version, the stream passed to stream-map is an expression that creates a stream, which
+  is then passed into the stream map. In the original version with <guesses>, the stream passed into stream-map
+  is the existing stream <guesses>, so there is no stream construction happening on every calculation.
+
+Since the issue here is the recreation of a stream on every calculation, rather than a memoization process being
+  skipped, the original sqrt-stream procedure with <guesses> as a local variable will be more efficient, with or
+  without the memo-proc procedure.
+
+NOTE: From reading around other online solutions, it seems that the *reason* that the recursive call to sqrt-stream in Louis'
+  version is inefficient is precisely because that reconstruction doesn't benefit from memoization. This makes sense, as a
+  freshly created stream won't have the memory of a past stream. In other words, it will have a memo, but that memo will be
+  empty. In this case, my second answer above is incorrect. The very reason that the version with <guess> defined locally works
+  is because it's memo is saved and reused.
+|#
+
+
+
+; Exercise 3.64
+(define (stream-limit s t)
+  (if (< (abs (- (stream-car s) (stream-car (stream-cdr s)))) t)
+      (stream-car (stream-cdr s))
+      (stream-limit (stream-cdr s) t)))
 
   
   

@@ -62,6 +62,12 @@
        (apply proc (map stream-car argstreams))
        (apply stream-map-generalized
               (cons proc (map stream-cdr argstreams))))))
+
+(define (average x y)
+  (/ (+ x y) 2))
+
+(define (partial-sums s)
+  (add-streams (cons-stream 0 (partial-sums s)) s))
       
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -211,6 +217,50 @@
           ((divisible? n (stream-car ps)) false)
           (else (iter (stream-cdr ps)))))
   (iter primes-alternate))
+
+
+
+; Old sqrt improvement function used previously in an iterator
+(define (sqrt-improve guess x)
+  (average guess (/ x guess)))
+
+; A stream of guesses for sqrt, rather than storing iterative guesses in a local state variable
+(define (sqrt-stream x)
+  (define guesses
+    (cons-stream
+     1.0
+     (stream-map (lambda (guess) (sqrt-improve guess x))
+                 guesses)))
+  guesses)
+
+
+
+; Stream of better and better guesses to pi
+(define (pi-summands n)
+  (cons-stream (/ 1.0 n)
+               (stream-map - (pi-summands (+ n 2)))))
+
+(define pi-stream
+  (scale-stream (partial-sums (pi-summands 1)) 4))
+
+
+
+; Euler transform of a sequence (It's absolutely insane/amazing that this works)
+(define (euler-transform s)
+  (let ((s0 (stream-ref s 0))
+        (s1 (stream-ref s 1))
+        (s2 (stream-ref s 2)))
+    (cons-stream (- s2 (/ (square (- s2 s1))
+                          (+ s0 (* -2 s1) s2)))
+                 (euler-transform (stream-cdr s)))))
+
+; A tableau, a recursive series accelerator
+(define (make-tableau transform s)
+  (cons-stream s (make-tableau transform (transform s))))
+
+; Using the tableau
+(define (accelerated-sequence transform s)
+  (stream-map stream-car (make-tableau transform s)))
 
 
 
