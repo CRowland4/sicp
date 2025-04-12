@@ -78,6 +78,20 @@
 (define (accelerated-sequence transform s)
   (stream-map stream-car (make-tableau transform s)))
 
+(define (pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave  ; Defined below
+    (stream-map (lambda (x) (list (stream-car s) x))
+                (stream-cdr t))
+    (pairs (stream-cdr s) (stream-cdr t)))))
+
+(define (interleave s1 s2)
+  (if (stream-null? s1)
+      s2
+      (cons-stream (stream-car s1)
+                   (interleave s2 (stream-cdr s1)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -839,3 +853,24 @@ NOTE: From reading around other online solutions, it seems that the *reason* tha
 
 ; Not sure what the book means by 'how rapidly do these sequences converge,
 ;   but each converges faster than the previous, as expected.
+
+
+
+; Exercise 3.66
+#|
+Came up with a recursive formula here, not a precise mathematical operation expression but I'm
+  happy with it.
+|#
+(define (pair-position i j)
+  (cond ((and (= 1 i) (= j 1)) 1)
+        ((= i 1) (* 2 (- j 1)))
+        (else (+ (* 2 (pair-position (- i 1) (- j 1))) 1))))
+
+; Ended up using the previous formula to come up with an exact expression.
+; Calculations in LiquidText. Needed a floor function to make it work.
+(define (calculated-pair-position i j)
+  (- (+ (* (expt 2 (+ i (floor (/ i j))))
+           (- j i))
+        (expt 2 (- (+ i (floor (/ i j))) 1)))
+     1))
+  

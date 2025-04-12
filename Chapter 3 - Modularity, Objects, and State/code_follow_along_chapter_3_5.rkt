@@ -264,6 +264,31 @@
 
 
 
+; Stream of all pairs of integers (i, j) with i <= j such that i + j is prime
+;   It's assumed that we have the sequence <int-pairs>, which is the sequence
+;   of all pairs of integers (i, j) with i <= j.
+#|
+(stream-filter
+  (lambda (pair) (prime? (+ (car pair) (cadr pair))))
+|#
+
+; Stream of int pairs
+(define (pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave  ; Defined below
+    (stream-map (lambda (x) (list (stream-car s) x))
+                (stream-cdr t))
+    (pairs (stream-cdr s) (stream-cdr t)))))
+
+(define (interleave s1 s2)
+  (if (stream-null? s1)
+      s2
+      (cons-stream (stream-car s1)
+                   (interleave s2 (stream-cdr s1)))))
+
+
+
 
 
 
