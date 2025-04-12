@@ -873,4 +873,43 @@ Came up with a recursive formula here, not a precise mathematical operation expr
            (- j i))
         (expt 2 (- (+ i (floor (/ i j))) 1)))
      1))
-  
+
+; The pair (1, 100) is number 198
+; The pair (99, 100) is number 950,737,950,171,172,051,122,527,404,031
+; The pair (100, 100) is number 1,267,650,600,228,229,401,496,703,205,375
+
+
+
+; Exercise 3.67
+; Give that we now have the <interleave> I figure I'll make a stream of the other half of the
+;  'pair pyramid' we've used in the book, and then interleave that one and the original.
+
+; Used to make the stream of pairs where i <= j
+(define (upper-pairs s t)  
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave
+    (stream-map (lambda (x) (list (stream-car s) x))
+                (stream-cdr t))
+    (upper-pairs (stream-cdr s) (stream-cdr t)))))
+
+; Used to make the stream of pairs where i > j
+(define (lower-pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave
+    (stream-map (lambda (x) (list x (stream-car t)))
+                (stream-cdr s))
+    (lower-pairs (stream-cdr s) (stream-cdr t)))))
+
+; Stream of pairs where i <= j
+(define upper-pyramid (upper-pairs integers integers))
+
+; Stream of pairs where i > j
+(define lower-pyramid (lower-pairs (add-streams integers ones) integers))
+
+; Stream of all pairs (i, j)
+(define all-pairs (interleave upper-pyramid lower-pyramid))
+
+
+                
