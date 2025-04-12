@@ -912,4 +912,51 @@ Came up with a recursive formula here, not a precise mathematical operation expr
 (define all-pairs (interleave upper-pyramid lower-pyramid))
 
 
+
+; Exercise 3.68
+(define (louis-pairs-procedure s t)
+  (interleave
+   (stream-map (lambda (x) (list (stream-car s) x))
+               t)
+   (louis-pairs-procedure (stream-cdr s) (stream-cdr t))))
+
+;(define louis-upper-pairs (louis-pairs-procedure integers integers))
+
+; Explanation, starting withe a first simplification of <louis-pairs-procedure> called with <integers integers>:
+(define (louis-pairs-procedure integers integers)
+  (interleave
+   (cons-stream (proc (stream-car integers))
+                (stream-map proc (stream-cdr integers)))
+   (louis-pairs-procedure (stream-cdr integers) (stream-cdr integers))))
+
+; ->
+(define (louis-pairs-procedure integers integers)
+  (interleave
+   (cons-stream (list (stream-car integers) (stream-car integers))
+                   (stream-map proc (stream-cdr integers)))
+   (louis-pairs-procedure (stream-cdr integers) (stream-cdr integers))))
+
+; ->
+(define (louis-pairs-procedure integers integers)
+  (interleave
+   ((1 1) . (delay (stream-map proc (stream-cdr s))))  ; We have a pair with a delayed cdr here, as a result of the cons-stream in stream-map
+   (louis-pairs-procedure (stream-cdr integers) (stream-cdr integers))))  ; Now we move on to the second argument of interleave
+
+#|
+But this is where Louis' procedure differs - we have to keep evaluating recursively, which will produce
+  another pair with a delayed cdr interleaved with a recursive call to louis-pairs-procedure, which will
+  produce  another pair with a delayed cdr interleaved with a recursive call to louis-pairs-procedure....
+  and so on. Using the first pairs separately with cons-stream allowed us to delay evaluation of the recursive
+  call. Then, when the recursive call is forced, the evaluation of the recursive has it's own recursive call,
+  which is also delayed.
+
+Essetially, starting with cons-stream and the first pair allows us to evaluate create a sort of gear that catches
+  on the next tooth (recursive evaluation), rather than a wheel that just spins out of control with no teeth on
+  which to catch. Kinda an odd metaphor but that's what comes to mind.
+|#
+
+
+
+
+
                 
