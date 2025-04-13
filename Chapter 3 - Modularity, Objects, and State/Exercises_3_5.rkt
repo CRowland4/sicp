@@ -1118,8 +1118,15 @@ First five and the pairs that can be squared and summed that go along with them:
 (845 ((19 22) (13 26) (2 29)))
 
 |#
-                   
 
 
-   
-   
+
+; Exercise 3.73
+(define (RC R C dt)
+  (define (inner current-stream v0)
+    (add-streams (scale-stream (integral current-stream v0 dt) (/ 1 C))
+                 (scale-stream current-stream R)))
+  inner)
+
+(define RC1 (RC 5 1 0.5))
+
