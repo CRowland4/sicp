@@ -993,7 +993,7 @@ Fairly certain this wasn't the 'intended' method the authors had in mind, using 
   (stream-filter pythagorean-triple-checker triples-stream))
 
 ; 'Intended' solution
-(define (triples s t u)
+(define (triples-intended s t u)
   (cons-stream
    (list
     (stream-car s)
@@ -1003,12 +1003,57 @@ Fairly certain this wasn't the 'intended' method the authors had in mind, using 
     (stream-map
      (lambda (x) (append (list (stream-car s)) x))
      (stream-cdr (pairs t u)))
-    (triples
+    (triples-intended
      (stream-cdr s)
      (stream-cdr t)
      (stream-cdr u)))))
 
 
 
+; Exercise 3.70
+(define (merge-weighted s1 s2 weight)
+  (cond ((stream-null? s1) s2)
+        ((stream-null? s2) s1)
+        (else
+         (let ((s1car (stream-car s1))
+               (s2car (stream-car s2)))
+           (cond ((< (weight s1car) (weight s2car))
+                  (cons-stream
+                   s1car
+                   (merge-weighted (stream-cdr s1) s2 weight)))
+                 (else     ; We can skip the > condition because the footnote assures us that we won't have two different pairs with equal weights
+                  (cons-stream
+                   s2car
+                   (merge-weighted s1 (stream-cdr s2) weight))))))))
+
+(define (weighted-pairs s t weight-function)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (merge-weighted
+    (stream-map (lambda (x) (list (stream-car s) x))
+                (stream-cdr t))
+    (weighted-pairs (stream-cdr s) (stream-cdr t) weight-function)
+    weight-function)))
+
+#|
+I'm not sure how to interpret the fact that the problem says <weighted-pairs> should receive "a procedure that computes a weighting function",
+  so I'm just going to pass it a lambda function that does what we want.
+|#
+
+; a
+(define a-stream
+  (weighted-pairs integers integers (lambda (pair) (+ (car pair) (cadr pair)))))
+
+; b
+(define b-stream
+  (stream-filter (lambda (pair) (not (or (= (remainder (car pair) 2) 0)
+                                         (= (remainder (cadr pair) 2) 0)
+                                         (= (remainder (car pair) 3) 0)
+                                         (= (remainder (cadr pair) 3) 0)
+                                         (= (remainder (car pair) 5) 0)
+                                         (= (remainder (cadr pair) 5) 0))))
+                 (weighted-pairs integers integers (lambda (pair) (+ (* 2 (car pair))
+                                                                     (* 3 (cadr pair))
+                                                                     (* 5 (car pair) (cadr pair)))))))
    
    
