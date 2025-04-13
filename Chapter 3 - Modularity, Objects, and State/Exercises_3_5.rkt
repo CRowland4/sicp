@@ -11,6 +11,7 @@
       the-empty-stream
       (cons-stream (proc (stream-car s))
                    (stream-map proc (stream-cdr s)))))
+
 (define (stream-enumerate-interval low high)
   (if (> low high)
       the-empty-stream
@@ -1055,5 +1056,33 @@ I'm not sure how to interpret the fact that the problem says <weighted-pairs> sh
                  (weighted-pairs integers integers (lambda (pair) (+ (* 2 (car pair))
                                                                      (* 3 (cadr pair))
                                                                      (* 5 (car pair) (cadr pair)))))))
+
+
+
+; Exercise 3.71
+(define (rama-weight pair)
+  (+ (* (car pair) (car pair) (car pair))
+     (* (cadr pair) (cadr pair) (cadr pair))))
+
+(define rama-weighted-pairs-stream
+  (weighted-pairs integers integers rama-weight))
+
+(define (rama-stream-map proc s)
+  (if (stream-null? s)
+      the-empty-stream
+      (cons-stream (proc s)  ; Slight modification to stream-map here so the procedure runs on s, rather than (stream-car s)
+                   (rama-stream-map proc (stream-cdr s)))))
+
+(define potential-rama-pairs-stream
+  (rama-stream-map (lambda (s) (list (stream-car s) (stream-car (stream-cdr s))))
+                   rama-weighted-pairs-stream))
+
+(define ramanujan-numbers-stream
+  (stream-map
+   (lambda (dos) (rama-weight (car dos)))
+   (stream-filter (lambda (dos) (= (rama-weight (car dos)) (rama-weight (cadr dos))))
+                  potential-rama-pairs-stream)))  ; First 6 are 1729, 4104, 13832, 20683, 32832, 39312
+
+
    
    
