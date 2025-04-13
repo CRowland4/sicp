@@ -1074,14 +1074,51 @@ I'm not sure how to interpret the fact that the problem says <weighted-pairs> sh
                    (rama-stream-map proc (stream-cdr s)))))
 
 (define potential-rama-pairs-stream
-  (rama-stream-map (lambda (s) (list (stream-car s) (stream-car (stream-cdr s))))
+  (rama-stream-map (lambda (s) (list (stream-car s)
+                                     (stream-car (stream-cdr s))))
                    rama-weighted-pairs-stream))
 
 (define ramanujan-numbers-stream
   (stream-map
    (lambda (dos) (rama-weight (car dos)))
-   (stream-filter (lambda (dos) (= (rama-weight (car dos)) (rama-weight (cadr dos))))
+   (stream-filter (lambda (dos) (= (rama-weight (car dos))
+                                   (rama-weight (cadr dos))))
                   potential-rama-pairs-stream)))  ; First 6 are 1729, 4104, 13832, 20683, 32832, 39312
+
+
+
+; Exercise 3.72
+(define (sum-of-squares pair)
+  (+ (square (car pair)) (square (cadr pair))))
+
+(define sum-of-squares-weighted-pairs-stream
+  (weighted-pairs integers integers sum-of-squares))
+
+(define potential-triple-pairs
+  (rama-stream-map (lambda (s) (list (stream-car s)
+                                     (stream-car (stream-cdr s))
+                                     (stream-car (stream-cdr (stream-cdr s)))))  ; We can reuse the modified stream-map from above
+                   sum-of-squares-weighted-pairs-stream))
+
+(define foo-stream   ; Ran out of imagination for the name
+  (stream-map
+   (lambda (tres) (list (sum-of-squares (car tres)) tres))
+   (stream-filter (lambda (tres) (= (sum-of-squares (car tres))
+                                    (sum-of-squares (cadr tres))
+                                    (sum-of-squares (caddr tres))))
+                  potential-triple-pairs)))
+
+#|
+
+First five and the pairs that can be squared and summed that go along with them:
+(325 ((10 15) (6 17) (1 18)))
+(425 ((13 16) (8 19) (5 20)))
+(650 ((17 19) (11 23) (5 25)))
+(725 ((14 23) (10 25) (7 26)))
+(845 ((19 22) (13 26) (2 29)))
+
+|#
+                   
 
 
    
