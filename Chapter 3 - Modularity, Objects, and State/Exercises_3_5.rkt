@@ -93,6 +93,16 @@
       (cons-stream (stream-car s1)
                    (interleave s2 (stream-cdr s1)))))
 
+(define (integral integrand initial-value dt)
+  (define int
+    (cons-stream initial-value
+                 (add-streams (scale-stream integrand dt)
+                              int)))
+  int)
+
+(define (sign-change-detector n1 n2) 'placeholder)
+(define sense-data integers)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exercise 3.50
@@ -1153,11 +1163,52 @@ First five and the pairs that can be squared and summed that go along with them:
 
 
 ; Exercise 3.75
-(define (make-zero-crossings input-stream last-stream-value last-avg-value)
+(define (make-zero-crossings-smoothed-debugged input-stream last-stream-value last-avg-value)
   (let ((avpt (/ (+ (stream-car input-stream)
                  last-stream-value)
               2)))
   (cons-stream
    (sign-change-detector avpt last-avg-value)
-   (make-zero-crossings
+   (make-zero-crossings-smoothed-debugged
     (stream-cdr input-stream) (stream-car input-stream) avpt))))
+
+
+
+; Exercise 3.76
+(define (smooth s)  ; Making use of the stream-map modification from exercise 3.71
+  (rama-stream-map
+   (lambda (S) (/ (+ (stream-car S)
+                     (stream-car (stream-cdr S)))
+                  2))
+   s))
+
+(define (zero-crossings-map-modular input-stream smooth-proc)
+  (let ((smoothed-data (smooth-proc input-stream)))
+    (stream-map-generalized sign-change-detector
+                            smoothed-data
+                            (stream-cdr smoothed-data))))
+
+
+
+; Exercise 3.77
+(define (alt-integral integrand initial-value dt)
+  (cons-stream
+   initial-value
+   (if (stream-null? integrand)
+       the-empty-stream
+       (alt-integral (stream-cdr integrand)
+                     (+ (* dt (stream-car integrand))
+                        initial-value)
+                     dt))))
+
+(define (alt-delayed-integral delayed-integrand initial-value dt)
+  (cons-stream
+   initial-value
+   (let ((integrand (force delayed-integrand)))
+     (if (stream-null? integrand)
+         the-empty-stream
+         (alt-integral (stream-cdr integrand)
+                       (+ (* dt (stream-car integrand))
+                          initial-value)
+                       dt)))))
+     

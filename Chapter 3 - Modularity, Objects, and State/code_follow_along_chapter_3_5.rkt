@@ -299,6 +299,38 @@
 
 
 
+; Attempt at modeling circuit that solves the equation dy/dt = f(y) with a procedure
+(define (solve f y0 dt)
+  (define y (integral dy y0 dt))
+  (define dy (stream-map f y))
+  y)  ; Doesn't work, because dy is used - to define y - before dy itself is defined
+
+; A redefined <integral> that expects a delayed argument for the integrand
+(define (delayed-integral delayed-integrand initial-value dt)
+  (define int
+    (cons-stream
+     initial-value
+     (let ((integrand (force delayed-integrand)))
+       (add-streams (scale-stream integrand dt) int))))
+  int)
+
+; The same solve procedure, using <delayed-integral>
+(define (delayed-solve f y0 dt)
+  (define y (delayed-integral (delay dy) y0 dt))
+  (define dy (stream-map f y))
+  y)
+
+; Approximation of e at y = 1
+; Turns out that my Scheme interpreter won't actually run this, see footnote 71 in the book.
+#|
+(stream-ref (delayed-solve (lambda (y) y)
+                           1
+                           0.001)
+            1000)
+|#
+
+
+
 
 
 
