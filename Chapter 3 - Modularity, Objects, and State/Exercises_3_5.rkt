@@ -1211,4 +1211,34 @@ First five and the pairs that can be squared and summed that go along with them:
                        (+ (* dt (stream-car integrand))
                           initial-value)
                        dt)))))
+
+
+
+; Exercise 3.78
+(define (solve-2nd a b dt y0 dy0)
+  (define y (alt-delayed-integral (delay dy) y0 dt))
+  (define dy (alt-delayed-integral (delay ((add-streams (scale-stream dy a)
+                                                        (scale-stream y b)))
+                                          dy0
+                                          dt)))
+  y)
+                                   
+
+
+
+
+(define (delayed-solve f y0 dt)
+  (define y (delayed-integral (delay dy) y0 dt))
+  (define dy (stream-map f y))
+  y)
+
+; Exercise 3.73
+(define (RC R C dt)
+  (define (inner current-stream v0)
+    (add-streams (scale-stream (integral current-stream v0 dt) (/ 1 C))  ; We're just using the base integral given here in the book, and then adding on the extra pieces
+                 (scale-stream current-stream R)))
+  inner)
+
+(define RC1 (RC 5 1 0.5))
+  
      
