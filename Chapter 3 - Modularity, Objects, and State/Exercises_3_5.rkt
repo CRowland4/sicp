@@ -1124,9 +1124,33 @@ First five and the pairs that can be squared and summed that go along with them:
 ; Exercise 3.73
 (define (RC R C dt)
   (define (inner current-stream v0)
-    (add-streams (scale-stream (integral current-stream v0 dt) (/ 1 C))
+    (add-streams (scale-stream (integral current-stream v0 dt) (/ 1 C))  ; We're just using the base integral given here in the book, and then adding on the extra pieces
                  (scale-stream current-stream R)))
   inner)
 
 (define RC1 (RC 5 1 0.5))
+
+
+
+; Exercise 3.74
+(define (make-zero-crossings input-stream last-value)
+  (cons-stream
+   (sign-change-detector
+    (stream-car input-stream)
+    last-value)
+   (make-zero-crossings
+    (stream-cdr input-stream)
+    (stream-car input-stream))))
+
+(define zero-crossings
+  (make-zero-crossings sense-data 0))
+
+(define zero-crossings-map  ; Solution
+  (stream-map-generalized sign-change-detector
+              sense-data
+              (stream-cdr sense-data)))
+
+
+
+
 
