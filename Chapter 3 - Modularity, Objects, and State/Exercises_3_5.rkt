@@ -1152,5 +1152,12 @@ First five and the pairs that can be squared and summed that go along with them:
 
 
 
-
-
+; Exercise 3.75
+(define (make-zero-crossings input-stream last-stream-value last-avg-value)
+  (let ((avpt (/ (+ (stream-car input-stream)
+                 last-stream-value)
+              2)))
+  (cons-stream
+   (sign-change-detector avpt last-avg-value)
+   (make-zero-crossings
+    (stream-cdr input-stream) (stream-car input-stream) avpt))))
