@@ -1049,6 +1049,8 @@ Fairly certain this wasn't the 'intended' method the authors had in mind, using 
 #|
 I'm not sure how to interpret the fact that the problem says <weighted-pairs> should receive "a procedure that computes a weighting function",
   so I'm just going to pass it a lambda function that does what we want.
+
+After further reflection, I'm fairly certain that was correct.
 |#
 
 ; a
@@ -1217,10 +1219,10 @@ First five and the pairs that can be squared and summed that go along with them:
 ; Exercise 3.78
 (define (solve-2nd a b dt y0 dy0)
   (define y (alt-delayed-integral (delay dy) y0 dt))
-  (define dy (alt-delayed-integral (delay ((add-streams (scale-stream dy a)
+  (define dy (alt-delayed-integral (delay (add-streams (scale-stream dy a)
                                                         (scale-stream y b)))
                                           dy0
-                                          dt)))
+                                          dt))
   y)
 
 
@@ -1228,7 +1230,7 @@ First five and the pairs that can be squared and summed that go along with them:
 ; Exercise 3.79
 (define (solve-2nd-general f dt y0 dy0)
   (define y (alt-delayed-integral (delay dy) y0 dt))
-  (define dy (alt-delayed-integral (delay (stream-map-generlaized f dy y))
+  (define dy (alt-delayed-integral (delay (stream-map-generalized f dy y))
                                           dy0
                                           dt))
   y)
@@ -1236,9 +1238,40 @@ First five and the pairs that can be squared and summed that go along with them:
 
 
 ; Exercise 3.80
+(define (RLC R L C dt)
+  (define (inner vC0 iL0)
+    (define vC (alt-delayed-integral (delay dvC) vC0 dt))
+    (define iL (alt-delayed-integral (delay diL) iL0 dt))
+    (define dvC (scale-stream iL (* (/ 1 C) -1)))
+    (define diL (add-streams (scale-stream iL (* (/ ( R L)) -1))
+                             (scale-stream vC (/ 1 L))))
+    (cons vC iL))
+  inner)
+  
+
+; Solution - still can't run because of this implementation but there it is (footnote 71 in book)
+(define RLC-circuit ((RLC 1 1 0.2 0.1) 10 0))
 
 
 
+; Exercise 3.81
+
+; Stream implementation of a random number generator
+(define random-init 285)  ; To avoid errors
+(define (rand-update x) (+ x 1))  ; Just here to avoid errors, this isn't what this procedure would look like
+
+(define (generalized-random-numbers s)  ; The stream s will be a stream of pairs whose car is the command, and whose cdr, if the command is 'reset', is the number to reset to
+  (define stream-random-init integers)  ; Serves the purpose as <random-init> did in the streamless version, can be modified to start somewhere else
+  (define (inner s worker-stream)
+    (let ((cur-rand (stream-car worker-stream))
+          (command (stream-car (car s))))
+      (cons-stream
+       cur-rand
+     (cond ((eq? command 'generate)
+            (inner (stream-cdr s) (scale-stream integers (rand-update cur-rand))))
+           ((eq? command 'reset)
+            (inner (stream-cdr s) (scale-stream integers (cdr (stream-car s)))))))))
+  (inner s stream-random-init))
 
 
   
