@@ -1250,7 +1250,7 @@ First five and the pairs that can be squared and summed that go along with them:
   
 
 ; Solution - still can't run because of this implementation but there it is (footnote 71 in book)
-(define RLC-circuit ((RLC 1 1 0.2 0.1) 10 0))
+; (define RLC-circuit ((RLC 1 1 0.2 0.1) 10 0))
 
 
 
@@ -1272,6 +1272,45 @@ First five and the pairs that can be squared and summed that go along with them:
            ((eq? command 'reset)
             (inner (stream-cdr s) (scale-stream integers (cdr (stream-car s)))))))))
   (inner s stream-random-init))
+
+
+
+; Exercise 3.82
+(define (monte-carlo experiment-stream passed failed)
+  (define (next passed failed)
+    (cons-stream
+     (/ passed (+ passed failed))
+     (monte-carlo
+      (stream-cdr experiment-stream) passed failed)))
+  
+  (if (stream-car experiment-stream)
+      (next (+ passed 1.0) failed)
+      (next passed (+ failed 1.0))))
+
+(define (random-in-range low high)
+  (let ((range (- high low)))
+    (+ low (* (random range)))))
+
+(define (unit-circle-predicate x y)
+  (<= (+ (square x) (square y)) 1.0))
+
+(define (estimate-integral P x1 x2 y1 y2)
+  (define random-pairs-stream
+    (cons-stream
+     (cons
+      (lambda () (random-in-range x1 x2))
+      (lambda () (random-in-range y1 y2)))
+     random-pairs-stream))
+
+  (let ((rectangle-area (* (- x2 x1) (- y2 y1))))
+    (stream-map (lambda (val) (* val rectangle-area))
+                (monte-carlo (stream-map (lambda (rand-pair) (P ((car rand-pair)) ((cdr rand-pair))))
+                                         random-pairs-stream)
+                             0 0))))
+
+(stream-ref (estimate-integral unit-circle-predicate -1.0 1.0 -1.0 1.0) 5000000)
+
+
 
 
   
