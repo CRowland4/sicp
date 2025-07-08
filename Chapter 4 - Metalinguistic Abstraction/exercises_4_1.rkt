@@ -71,3 +71,31 @@ In Louis's <eval>, the <self-evaluating?>, <variable?>, and <quoted?> clauses wi
 ; Similarly, since <apply>'s second argument is (list-of-values (operands exp) env), we'll have to modify <operands>
 (define (operands exp)
   (cddr exp))  ; Instead of (cdr exp)
+
+
+
+; Exercise 4.3
+#|
+For a data-directed dispatch procedure, we assume that every non-self-evaluating, non-variable expression has its data type as its car.
+  We check for an application next (it made sense to me to have this separate from the lookup table), and then use a data-directed dispatch
+  to continue the loop. I also made the choice to strip off the type tag when passing in the argument to the retrieved procedure, it also
+  makes more sense to me.
+
+I'm waving my hands over the procedures that would construct the actual table and put/get the procedures from it.
+|#
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        ((get-syntax (type-tag exp))
+         ((get-syntax (type-tag exp)) (cdr exp) env))
+        (else
+         (error "Unknown expression type: EVAL" exp))))
+         
+#|
+My rough solution here differs the most from the derivative procedure of Exercise 2.73 because of the last thing mentioned above - in that
+  procedure, the 'type-tag' was a procedure itself (the operator), and the handling of the operator was done by the procedure retrieved from
+  the table, rather than by the dispatcher itself.
+|#
