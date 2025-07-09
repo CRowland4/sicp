@@ -1,4 +1,29 @@
 #lang sicp
+; Everything between here and the row of semi-colons is defined so the exercises have access to them
+(define (no-operands? ops)
+  (null? ops))
+
+(define (first-operand ops)
+  (car ops))
+
+(define (rest-operands ops)
+  (cdr ops))
+
+(define (list-of-values exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (eval (first-operand exps) env)
+            (list-of-values (rest-operands exps) env))))
+
+(define (self-evaluating? exp)
+  (cond ((number? exp) true)  
+        ((string? exp) true)
+        (else false)))
+
+(define (variable? exp)
+  (symbol? exp))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Exercise 4.1
 (define (left-to-right exps env)
   (if (no-operands? exps)
@@ -83,11 +108,11 @@ For a data-directed dispatch procedure, we assume that every non-self-evaluating
 
 I'm waving my hands over the procedures that would construct the actual table and put/get the procedures from it.
 |#
-(define (eval exp env)
+(define (eval-dispatch exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((application? exp)
-         (apply (eval (operator exp) env)
+         (apply (eval-dispatch (operator exp) env)
                 (list-of-values (operands exp) env)))
         ((get-syntax (type-tag exp))
          ((get-syntax (type-tag exp)) (cdr exp) env))
@@ -99,3 +124,95 @@ My rough solution here differs the most from the derivative procedure of Exercis
   procedure, the 'type-tag' was a procedure itself (the operator), and the handling of the operator was done by the procedure retrieved from
   the table, rather than by the dispatcher itself.
 |#
+
+
+
+; Exercise 4.4
+#|
+I'm choosing the 'Alternatively,...' option here and implementing 'and' and 'or' as derived expressions.
+|#
+(and (= x 1) (= y 1) (= z 1) (= a 1))
+
+
+(cond ((= x 1) 'true)
+      ((= y 1) 'true)
+      ((= z 1) 'true)
+      ((= a 1) 'true)
+      (else
+       'false))
+
+; and
+; We would add these two pieces to eval, taking advatage of the fact that we already have cond->if:
+((and? exp) (eval (and->cond exp) env))
+((or? exp) (eval (or->cond exp) env))
+
+; The procedures for and->cond and or->cond
+(define (and->cond exp)
+  (make-cond (negate-all (conjunction-predicates exp)) (conjunction-predicates exp) 'true))
+(define (or->cond exp)
+  (make-cond (conjunction-predicates exp) (conjunction-predicates exp) 'false))
+
+; The helper procedures
+(define (make-cond predicates consequences else-exp)
+  (if (not (= (length predicates) (length consequences)))
+      (error "Predicates and consequences must be of equal length: MAKE-COND" predicates consequences)
+      (if (null? predicates)
+          (error "Must have at least one predicate and one consequence: MAKE-COND" predicates consequences)
+          (cons 'cond (make-cond-body predicates consequences else-exp)))))
+(define (negate-all exps)
+  (if (null? exps)
+      '()
+      (cons (list 'not (car exps)) (negate-all (cdr exps)))))
+(define (make-cond-body predicates consequences else-exp)
+  (if (null? predicates)
+      (list (list 'else else-exp))
+      (cons (list (car predicates) (car consequences))
+            (make-cond-body (cdr predicates) (cdr consequences) else-exp))))
+(define (length items)
+  (if (null? items)
+      0
+      (+ 1 (length (cdr items))))) 
+(define (and? exp) (tagged-list? exp 'and))
+(define (or? exp) (tagged-list? exp 'or))
+(define (conjunction-predicates exp) (cdr exp))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
