@@ -178,41 +178,33 @@ I'm choosing the 'Alternatively,...' option here and implementing 'and' and 'or'
 
 
 
+; Exercise 4.5
+
+; To modify cond the evaluation of cond to handle the arrow syntax, we need to add to the expand-clauses procedure
+(define (arrow-clause? clause)
+  (eq? '=> (cadr clause)))
+(define (arrow-clause-test clause)
+  (car clause))
+(define (arrow-clause-recipient clause)
+  (caddr clause))
 
 
+(define (expand-clauses clauses)
+  (if (null? clauses)
+      'false  ; This is if the cond has no else clause, which Scheme doesn't specify, but we're choosing as false
+      (let ((first (car clauses))
+            (rest (cdr clauses)))
+        (if (cond-else-clause? first)
+            (if (null? rest)
+                (sequence->exp (cond-actions first))
+                (error "ELSE clause isn't last: COND->IF"
+                       clauses))
+            (if (arrow-clause? first)
+                (make-if (arrow-clause-test first)
+                         (list (arrow-clause-recipient first) (arrow-clause-test first))
+                         (expand-clauses rest))
+                (make-if (cond-predicate first)
+                         (sequence->exp (cond-actions first))
+                         (expand-clauses rest)))))))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(cond->if '(cond ((assoc 'b '((a 1) (b 2))) => cadr) (else false)))

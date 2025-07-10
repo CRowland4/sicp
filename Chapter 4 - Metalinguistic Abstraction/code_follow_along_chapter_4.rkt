@@ -1,9 +1,68 @@
 #lang sicp
+#|
+NOTE - my solution to 4.4 could potentially mishandle falsy values, look out for that (I don't immediately see why but Claude warnted of that.
+My assumption was that the predicates of the cond clause would evaluate to booleans, but obviously in a production environment truthy/falsy would
+  have to be considered as well.
+|#
+
+
+#| This is the follow-along for Chapter 4, but I'm also including my solutions to problems in their relevant places, because I want to try and actually get the full interpreter up
+     and running eventually.
+|#
+
+
+; 4.4 SOLUTION - adding the derived procedures 'and' and 'or' to the evaluator
+; The procedures for and->cond and or->cond
+(define (and->cond exp)
+  (make-cond (negate-all (conjunction-predicates exp)) (conjunction-predicates exp) 'true))
+(define (or->cond exp)
+  (make-cond (conjunction-predicates exp) (conjunction-predicates exp) 'false))
+
+; The helper procedures
+(define (make-cond predicates consequences else-exp)
+  (if (not (= (length predicates) (length consequences)))
+      (error "Predicates and consequences must be of equal length: MAKE-COND" predicates consequences)
+      (if (null? predicates)
+          (error "Must have at least one predicate and one consequence: MAKE-COND" predicates consequences)
+          (cons 'cond (make-cond-body predicates consequences else-exp)))))
+(define (negate-all exps)
+  (if (null? exps)
+      '()
+      (cons (list 'not (car exps)) (negate-all (cdr exps)))))
+(define (make-cond-body predicates consequences else-exp)
+  (if (null? predicates)
+      (list (list 'else else-exp))
+      (cons (list (car predicates) (car consequences))
+            (make-cond-body (cdr predicates) (cdr consequences) else-exp))))
+(define (length items)
+  (if (null? items)
+      0
+      (+ 1 (length (cdr items))))) 
+(define (and? exp) (tagged-list? exp 'and))
+(define (or? exp) (tagged-list? exp 'or))
+(define (conjunction-predicates exp) (cdr exp))
+
+
+
+; 4.5 SOLUTION - Adding compatibility with the cond arrow syntax
+; To modify cond the evaluation of cond to handle the arrow syntax, we need to add to the expand-clauses procedure
+(define (arrow-clause? clause)
+  (eq? '=> (cadr clause)))
+(define (arrow-clause-test clause)
+  (car clause))
+(define (arrow-clause-recipient clause)
+  (caddr clause))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; The follow along
 
 ; Definition of <eval>
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)  ; If the expression is self evaluating, just return the expression
         ((variable? exp) (lookup-variable-value exp env))  ; If the expression is a variable, lookup the value of that variable in the given environment <env>
+        ((and? exp) (eval (and->cond exp) env))  ; SOLUTION TO 4.4 a)
+        ((or? exp) (eval (or->cond exp) env))  ; SOLUTION TO 4.4 b)
         ((quoted? exp) (text-of-quotation exp))  ; If the expression is quoted, just return the expression's text, without the quote
         ((assignment? exp) (eval-assignment exp env))  ; If the expression is an assignment, we have to modify the environment to modify the variable binding, then call eval again
         ((definition? exp) (eval-definition exp env))  ; Same as above, except here we're creating a new variable, rather than reassigning an existing one
@@ -200,9 +259,18 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last: COND->IF"
                        clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            ; Added by me for Exercise 4.5
+            (if (arrow-clause? first)
+                (make-if (arrow-clause-test first)
+                         (list arrow-clause-recipient (arrow-clause-test first))
+                         (expand-clauses rest))
+                ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                (make-if (cond-predicate first)
+                         (sequence->exp (cond-actions first))
+                         (expand-clauses rest)))))))
+
+
 
 
   
