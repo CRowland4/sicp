@@ -23,6 +23,11 @@
 (define (variable? exp)
   (symbol? exp))
 
+(define (append list1 list2)
+  (if (null? list1)
+      list2
+      (cons (car list1) (append (cdr list1) list2))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Exercise 4.1
 (define (left-to-right exps env)
@@ -179,7 +184,6 @@ I'm choosing the 'Alternatively,...' option here and implementing 'and' and 'or'
 
 
 ; Exercise 4.5
-
 ; To modify cond the evaluation of cond to handle the arrow syntax, we need to add to the expand-clauses procedure
 (define (arrow-clause? clause)
   (eq? '=> (cadr clause)))
@@ -208,3 +212,55 @@ I'm choosing the 'Alternatively,...' option here and implementing 'and' and 'or'
                          (expand-clauses rest)))))))
 
 (cond->if '(cond ((assoc 'b '((a 1) (b 2))) => cadr) (else false)))
+
+
+
+; Exercise 4.6
+; We would add the following to eval:
+; ((let? exp) (eval (let->combination exp) env))
+
+; The new helper procedures
+(define (let? exp) (tagged-list? exp 'let))
+(define (let-body exp) (caddr exp))
+(define (let-clauses exp) (cadr exp))
+(define (let-variables exp)
+  (define (helper clauses)
+    (if (null? clauses)
+        '()
+        (cons (caar clauses) (helper (cdr clauses)))))
+  (helper (let-clauses exp)))
+(define (let-expressions exp)
+  (define (helper clauses)
+    (if (null? clauses)
+        '()
+        (cons (cadar clauses) (helper (cdr clauses)))))
+  (helper (let-clauses exp)))
+
+; Final procedure
+(define (let->combination exp)
+  (append (make-lambda (let-variables exp)(let-body exp))
+          (let-expressions exp)))
+
+(define my-let '(let ((a (+ 1 3)) (b (- 2 1)) (c 3)) (+ a b c)))
+(let->combination my-let)
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ; Making a lambda expression
+(define (make-lambda parameters body)
+  (cons 'lambda (cons parameters body)))

@@ -1,7 +1,16 @@
 #lang sicp
+; Everything between here and the row of semi-colons is defined for access, and isn't in the order in which it's presented in the book
+(define (append list1 list2)
+  (if (null? list1)
+      list2
+      (cons (car list1) (append (cdr list1) list2))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 #|
 NOTE - my solution to 4.4 could potentially mishandle falsy values, look out for that (I don't immediately see why but Claude warnted of that.
-My assumption was that the predicates of the cond clause would evaluate to booleans, but obviously in a production environment truthy/falsy would
+My solution assumes that the predicates of the cond clause would evaluate to booleans, but obviously in a production environment truthy/falsy would
   have to be considered as well.
 |#
 
@@ -54,6 +63,31 @@ My assumption was that the predicates of the cond clause would evaluate to boole
   (caddr clause))
 
 
+
+; 4.6 SOLUTION - Reducing let expressions to an expression calling a lambda expression
+; The new helper procedures
+(define (let? exp) (tagged-list? exp 'let))
+(define (let-body exp) (caddr exp))
+(define (let-clauses exp) (cadr exp))
+(define (let-variables exp)
+  (define (helper clauses)
+    (if (null? clauses)
+        '()
+        (cons (caar clauses) (helper (cdr clauses)))))
+  (helper (let-clauses exp)))
+(define (let-expressions exp)
+  (define (helper clauses)
+    (if (null? clauses)
+        '()
+        (cons (cadar clauses) (helper (cdr clauses)))))
+  (helper (let-clauses exp)))
+
+; Final procedure
+(define (let->combination exp)
+  (append (make-lambda (let-variables exp)(let-body exp))
+          (let-expressions exp)))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; The follow along
 
@@ -73,6 +107,7 @@ My assumption was that the predicates of the cond clause would evaluate to boole
         ((begin? exp)
          (eval-sequence (begin-actions exp) env))  ; For a begin expression, we have to evaluate the sequence of expressions in the order they appear
         ((cond? exp) (eval (cond->if exp) env))  ; For a cond expression, we turn the predicates and expressions into nested if statements, and then evaluate
+        ((let? exp) (eval (let->combination exp) env))  ; SOLUTION TO 4.6
         ((application? exp)  ; If the expression is apply, we have to apply the value of the operator of the expression to the values of the operands of the expression
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
